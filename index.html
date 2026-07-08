@@ -128,17 +128,35 @@
                 <!-- Main Dashboard Grid -->
                 <div class="dashboard-grid">
                     <!-- Chart Section -->
-                    <div class="dashboard-card chart-card">
-                        <div class="card-header">
-                            <h3>Financial Performance</h3>
-                            <div class="card-actions">
-                                <span class="badge badge-accent">Monthly Trend</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="revenueChart" height="260"></canvas>
-                        </div>
-                    </div>
+                     <!-- Monthly Billing Checklist Section -->
+                     <div class="dashboard-card chart-card">
+                         <div class="card-header">
+                             <h3>Monthly Billing Checklist</h3>
+                             <div class="card-actions">
+                                 <select id="checklist-month-select" class="form-control form-control-sm" style="width: auto; padding: 4px 8px; font-size: 12px; height: 30px;">
+                                     <!-- Dynamically populated months -->
+                                 </select>
+                             </div>
+                         </div>
+                         <div class="card-body p-0" style="overflow-y: auto; max-height: 300px;">
+                             <div class="table-responsive">
+                                 <table class="table" id="billing-checklist-table" style="font-size: 13px; margin: 0;">
+                                     <thead>
+                                         <tr>
+                                             <th>Client</th>
+                                             <th>Business Unit</th>
+                                             <th>Monthly Budget</th>
+                                             <th>Status</th>
+                                             <th>Action</th>
+                                         </tr>
+                                     </thead>
+                                     <tbody>
+                                         <!-- Dynamically populated rows -->
+                                     </tbody>
+                                 </table>
+                             </div>
+                         </div>
+                     </div>
                     
                     <!-- Retainer Lookup & Tracker Card -->
                     <div class="dashboard-card mini-calc-card">
