@@ -190,6 +190,10 @@ const initialTransactions = [
     }
 ];
 
-// Seed to localStorage - Overwrite with structured client-LOB architecture
-localStorage.setItem("erp_clients", JSON.stringify(initialClients));
-localStorage.setItem("erp_transactions", JSON.stringify(initialTransactions));
+// Seed to localStorage only if empty to prevent data loss on page refreshes
+if (!localStorage.getItem("erp_clients")) {
+    localStorage.setItem("erp_clients", JSON.stringify(initialClients));
+}
+if (!localStorage.getItem("erp_transactions")) {
+    localStorage.setItem("erp_transactions", JSON.stringify(initialTransactions));
+}
