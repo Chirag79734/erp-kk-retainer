@@ -5,14 +5,20 @@ let clients = [];
 let transactions = [];
 let revenueChart = null;
 
-// Initialize app data from localStorage
+// Initialize app data
 function initData() {
-    clients = JSON.parse(localStorage.getItem("erp_clients")) || [];
-    transactions = JSON.parse(localStorage.getItem("erp_transactions")) || [];
+    // Always load client LOB config from mockData.js (initialClients) to guarantee structural updates take effect immediately
+    clients = initialClients;
+    localStorage.setItem("erp_clients", JSON.stringify(clients));
+    
+    // Transactions are user-generated ledger items, load from localStorage
+    transactions = JSON.parse(localStorage.getItem("erp_transactions")) || initialTransactions;
+    if (!localStorage.getItem("erp_transactions")) {
+        localStorage.setItem("erp_transactions", JSON.stringify(initialTransactions));
+    }
 }
 
 function saveData() {
-    localStorage.setItem("erp_clients", JSON.stringify(clients));
     localStorage.setItem("erp_transactions", JSON.stringify(transactions));
 }
 
