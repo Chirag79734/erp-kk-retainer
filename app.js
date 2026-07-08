@@ -461,7 +461,7 @@ function renderBillingLedger() {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><strong>#${t.id.toUpperCase()}</strong></td>
+            <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong></td>
             <td>${t.clientName}${t.lobName ? ` <span class="text-muted small">(${t.lobName})</span>` : ''}</td>
             <td>${t.billingMonth}</td>
             <td>${basisValDesc}</td>
@@ -874,6 +874,7 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
     const baseVal = parseFloat(document.getElementById('log-bill-variable-value').value) || 0;
     const kpiVal = parseFloat(document.getElementById('log-bill-kpi-value').value) || 0;
     const billType = lob.billingModel === 'SplitRetainer' ? document.getElementById('log-bill-type').value : null;
+    const invoiceNum = document.getElementById('log-bill-invoice-number').value.trim();
 
     let retainerAmt = 0;
     let commissionAmt = 0;
@@ -906,6 +907,7 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
         clientName: client.name,
         lobName: lob.name,
         billingType: billType,
+        invoiceNumber: invoiceNum,
         date: new Date().toISOString().split('T')[0],
         billingMonth: formattedMonth,
         retainerAmount: retainerAmt,
@@ -1216,7 +1218,7 @@ window.viewInvoice = function(transactionId) {
         badge.className = 'invoice-badge badge-warning';
     }
 
-    document.getElementById('inv-id').textContent = tx.id.toUpperCase();
+    document.getElementById('inv-id').textContent = tx.invoiceNumber ? tx.invoiceNumber : tx.id.toUpperCase();
     document.getElementById('inv-date').textContent = formatDate(tx.date);
     document.getElementById('inv-client-name').textContent = tx.lobName ? `${tx.clientName} (${tx.lobName})` : tx.clientName;
     document.getElementById('inv-client-contact').textContent = client.contactName;

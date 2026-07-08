@@ -125,6 +125,7 @@ const initialTransactions = [
         clientId: "c1",
         clientName: "Airtel",
         lobName: "Performance",
+        invoiceNumber: "INV/2026/001",
         date: "2026-06-30",
         billingMonth: "June 2026",
         retainerAmount: 1870000, // 85% of 22 Lakhs
@@ -140,6 +141,7 @@ const initialTransactions = [
         clientId: "c2",
         clientName: "ITC Hotel",
         lobName: "Performance",
+        invoiceNumber: "INV/2026/002",
         date: "2026-06-30",
         billingMonth: "June 2026",
         retainerAmount: 560000,
@@ -155,6 +157,7 @@ const initialTransactions = [
         clientId: "c1",
         clientName: "Airtel",
         lobName: "Performance",
+        invoiceNumber: "INV/2026/003",
         date: "2026-05-31",
         billingMonth: "May 2026",
         retainerAmount: 1870000,
