@@ -1,0 +1,22 @@
+{
+  "name": "erp-kk-retainer",
+  "version": "1.0.0",
+  "description": "ERP KK-Retainer billing dashboard and tracker",
+  "main": "index.html",
+  "scripts": {
+    "start": "lite-server",
+    "dev": "lite-server"
+  },
+  "keywords": [
+    "erp",
+    "dashboard",
+    "retainer",
+    "billing",
+    "commission"
+  ],
+  "author": "Chirag",
+  "license": "ISC",
+  "devDependencies": {
+    "lite-server": "^2.6.1"
+  }
+}

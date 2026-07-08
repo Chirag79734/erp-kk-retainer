@@ -1,0 +1,74 @@
+name: Secure CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+# Explicitly limit permissions to the absolute minimum required to prevent token hijack leaks
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Job 1: Audit and scan for accidental secrets or credentials leak
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Secret Leak Scanning Checks
+        run: |
+          echo "Checking codebase for credentials or environment configuration file leaks..."
+          
+          # Check 1: Block committed environment files
+          if [ -f .env ] || [ -f .env.local ] || [ -f config.json ] && grep -q -i "password\|secret\|key\|token" config.json 2>/dev/null; then
+            echo "::error::Critical Security Risk: Environment files (.env) or config files containing credentials have been committed!"
+            exit 1
+          fi
+
+          # Check 2: Block committed private keys
+          if grep -r -q "BEGIN PRIVATE KEY\|BEGIN RSA PRIVATE KEY" . --exclude-dir=.git 2>/dev/null; then
+            echo "::error::Critical Security Risk: Private key files detected inside the repository!"
+            exit 1
+          fi
+          
+          echo "Security audit passed. No obvious secret leaks found."
+
+  # Job 2: Secure deploy to GitHub Pages
+  deploy:
+    needs: security-audit
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup GitHub Pages Environment
+        uses: actions/configure-pages@v5
+
+      - name: Upload Static Web Contents Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+          # Explicitly exclude local/temp files in artifact creation to avoid leaks
+          exclude: |
+            .git/
+            .github/
+            .agents/
+            .gemini/
+            brain/
+            scratch/
+            push_to_github.bat
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
