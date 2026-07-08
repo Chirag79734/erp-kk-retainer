@@ -113,7 +113,6 @@ function renderDashboard() {
     document.getElementById('kpi-monthly-billing').textContent = formatCurrency(totalBilling);
     document.getElementById('kpi-retainer-share').textContent = formatCurrency(totalRetainers);
     document.getElementById('kpi-commission-share').textContent = formatCurrency(totalCommissions);
-    document.getElementById('kpi-outstanding-billing').textContent = formatCurrency(outstandingBilling);
 
     // 2. Render Recent Invoices (limit to 5)
     const recentTableBody = document.querySelector('#recent-invoices-table tbody');
