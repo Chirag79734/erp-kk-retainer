@@ -53,9 +53,17 @@ const initialClients = [
         startDate: "2026-02-15",
         lobs: [
             {
-                name: "Core",
+                name: "Performance",
                 billingModel: "Retainer",
-                totalRetainer: 200000,
+                totalRetainer: 560000,
+                fixedSharePercent: 100,
+                variableSharePercent: 0,
+                variableMetric: "None"
+            },
+            {
+                name: "SEO",
+                billingModel: "Retainer",
+                totalRetainer: 300000,
                 fixedSharePercent: 100,
                 variableSharePercent: 0,
                 variableMetric: "None"
@@ -121,14 +129,14 @@ const initialTransactions = [
         id: "t2",
         clientId: "c2",
         clientName: "ITC Hotel",
-        lobName: "Core",
+        lobName: "Performance",
         date: "2026-06-30",
         billingMonth: "June 2026",
-        retainerAmount: 200000,
+        retainerAmount: 560000,
         commissionAmount: 0,
         variableBaseAmount: 0,
         kpiAchievement: 100,
-        totalAmount: 200000,
+        totalAmount: 560000,
         status: "Pending",
         dueDate: "2026-07-15"
     },
