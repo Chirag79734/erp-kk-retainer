@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KK Retainer ERP - Client & Commission Billing Dashboard</title>
+    
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide/dist/umd/lucide.min.js"></script>
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">KK</div>
+                <h2>KK ERP</h2>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#" class="nav-item active" data-target="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-target="clients">
+                    <i data-lucide="users"></i>
+                    <span>Clients Directory</span>
+                </a>
+                <a href="#" class="nav-item" data-target="billing">
+                    <i data-lucide="receipt"></i>
+                    <span>Billing Ledger</span>
+                </a>
+                <a href="#" class="nav-item" data-target="calculator">
+                    <i data-lucide="calculator"></i>
+                    <span>Commission Calc</span>
+                </a>
+                <a href="#" class="nav-item" data-target="invoice-viewer">
+                    <i data-lucide="file-text"></i>
+                    <span>Invoice Hub</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar">AD</div>
+                    <div class="user-info">
+                        <h4>Admin Panel</h4>
+                        <p>billing@kkcompany.com</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Application Area -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="page-title">
+                    <h1 id="view-title">Dashboard Overview</h1>
+                    <p id="view-subtitle" class="text-muted">Welcome back. Here is your business billing summary.</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="date-badge">
+                        <i data-lucide="calendar"></i>
+                        <span id="current-date">July 8, 2026</span>
+                    </div>
+                    <button class="btn btn-primary" id="btn-quick-bill">
+                        <i data-lucide="plus-circle"></i>
+                        <span>New Billing Entry</span>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- VIEW: Dashboard -->
+            <div id="view-dashboard" class="view-panel active">
+                <!-- KPI Grid -->
+                <div class="kpi-grid">
+                    <div class="kpi-card purple-gradient">
+                        <div class="kpi-icon">
+                            <i data-lucide="users"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Active Clients</span>
+                            <h3 class="kpi-val" id="kpi-active-clients">0</h3>
+                        </div>
+                    </div>
+                    <div class="kpi-card green-gradient">
+                        <div class="kpi-icon">
+                            <i data-lucide="indian-rupee"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Total Monthly Billing</span>
+                            <h3 class="kpi-val" id="kpi-monthly-billing">₹0</h3>
+                        </div>
+                    </div>
+                    <div class="kpi-card blue-gradient">
+                        <div class="kpi-icon">
+                            <i data-lucide="wallet"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Retainer Share</span>
+                            <h3 class="kpi-val" id="kpi-retainer-share">₹0</h3>
+                        </div>
+                    </div>
+                    <div class="kpi-card gold-gradient">
+                        <div class="kpi-icon">
+                            <i data-lucide="trending-up"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Commission Share</span>
+                            <h3 class="kpi-val" id="kpi-commission-share">₹0</h3>
+                        </div>
+                    </div>
+                    <div class="kpi-card red-gradient">
+                        <div class="kpi-icon">
+                            <i data-lucide="alert-circle"></i>
+                        </div>
+                        <div class="kpi-info">
+                            <span class="kpi-label">Outstanding Invoices</span>
+                            <h3 class="kpi-val" id="kpi-outstanding-billing">₹0</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Dashboard Grid -->
+                <div class="dashboard-grid">
+                    <!-- Chart Section -->
+                    <div class="dashboard-card chart-card">
+                        <div class="card-header">
+                            <h3>Financial Performance</h3>
+                            <div class="card-actions">
+                                <span class="badge badge-accent">Monthly Trend</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenueChart" height="260"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Commission Calculator Preview -->
+                    <div class="dashboard-card mini-calc-card">
+                        <div class="card-header">
+                            <h3>Quick Estimator</h3>
+                            <i data-lucide="zap" class="text-gold"></i>
+                        </div>
+                        <div class="card-body">
+                            <form id="mini-calc-form">
+                                <div class="form-group">
+                                    <label for="mini-calc-client">Client</label>
+                                    <select id="mini-calc-client" class="form-control" required>
+                                        <option value="">Choose Client...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="mini-calc-base" id="lbl-mini-calc-base">Monthly Ad Spend / Sales</label>
+                                    <div class="input-with-icon">
+                                        <span class="currency-symbol">₹</span>
+                                        <input type="number" id="mini-calc-base" class="form-control" placeholder="Enter amount" required>
+                                    </div>
+                                </div>
+                                <div class="calc-results-preview">
+                                    <div class="result-row">
+                                        <span>Retainer Rate:</span>
+                                        <strong id="mini-res-retainer">₹0</strong>
+                                    </div>
+                                    <div class="result-row">
+                                        <span id="mini-res-comm-label">Commission (0%):</span>
+                                        <strong id="mini-res-commission">₹0</strong>
+                                    </div>
+                                    <div class="result-row total">
+                                        <span>Estimated Total:</span>
+                                        <strong id="mini-res-total">₹0</strong>
+                                    </div>
+                                </div>
+                                <button type="button" id="btn-mini-save" class="btn btn-outline btn-block" disabled>
+                                    <i data-lucide="save"></i> Save & Log Billing
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Invoices Table -->
+                <div class="dashboard-card table-card full-width">
+                    <div class="card-header">
+                        <h3>Recent Billing Invoices</h3>
+                        <button class="btn btn-sm btn-outline" onclick="switchTab('billing')">View All Ledger</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="recent-invoices-table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice ID</th>
+                                        <th>Client Name</th>
+                                        <th>Billing Month</th>
+                                        <th>Retainer Fee</th>
+                                        <th>Commission Fee</th>
+                                        <th>Total Billed</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VIEW: Clients Directory -->
+            <div id="view-clients" class="view-panel">
+                <div class="panel-actions">
+                    <div class="search-bar-container">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="search-clients" placeholder="Search clients by name, contact, billing model..." class="search-input">
+                    </div>
+                    <button class="btn btn-primary" id="btn-add-client">
+                        <i data-lucide="user-plus"></i> Add New Client
+                    </button>
+                </div>
+                
+                <div class="dashboard-card full-width">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table" id="clients-table">
+                                <thead>
+                                    <tr>
+                                        <th>Client Name</th>
+                                        <th>Primary Contact</th>
+                                        <th>Billing Model</th>
+                                        <th>Fixed Retainer</th>
+                                        <th>Commission Setup</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VIEW: Billing Ledger -->
+            <div id="view-billing" class="view-panel">
+                <div class="panel-actions">
+                    <div class="filter-bar">
+                        <div class="form-group-inline">
+                            <label>Filter Client:</label>
+                            <select id="filter-billing-client" class="form-control form-control-sm">
+                                <option value="all">All Clients</option>
+                            </select>
+                        </div>
+                        <div class="form-group-inline">
+                            <label>Status:</label>
+                            <select id="filter-billing-status" class="form-control form-control-sm">
+                                <option value="all">All Status</option>
+                                <option value="Paid">Paid</option>
+                                <option value="Pending">Pending</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="btn-create-bill">
+                        <i data-lucide="plus-circle"></i> Log Billing Transaction
+                    </button>
+                </div>
+                
+                <div class="dashboard-card full-width">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table" id="billing-ledger-table">
+                                <thead>
+                                    <tr>
+                                        <th>Invoice ID</th>
+                                        <th>Client Name</th>
+                                        <th>Month</th>
+                                        <th>Basis Variable Value</th>
+                                        <th>Retainer Amount</th>
+                                        <th>Commission Amount</th>
+                                        <th>Total Invoice</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VIEW: Commission Calculator -->
+            <div id="view-calculator" class="view-panel">
+                <div class="calculator-layout">
+                    <div class="dashboard-card calc-main-card">
+                        <div class="card-header border-bottom">
+                            <h3>Commission & Retainer Billing Calculator</h3>
+                            <p class="card-subtitle text-muted">Generate exact monthly commissions based on your dynamic performance metric.</p>
+                        </div>
+                        <div class="card-body">
+                            <form id="full-calculator-form">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="calc-client">Client</label>
+                                        <select id="calc-client" class="form-control form-control-lg" required>
+                                            <option value="">Select a Client...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="calc-billing-month">Billing Month</label>
+                                        <input type="month" id="calc-billing-month" class="form-control form-control-lg" required>
+                                    </div>
+                                </div>
+                                
+                                <div id="calc-onboarding-alert" class="alert-onboarding" style="display: none; padding: 16px; background-color: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); border-radius: var(--border-radius-md); color: #fca5a5; margin: 20px 0; font-weight: 500; align-items: center; gap: 8px;">
+                                    <i data-lucide="alert-circle" style="width: 20px; height: 20px; color: var(--danger);"></i>
+                                    <span>Client onboarding in process. Calculations cannot be performed yet.</span>
+                                </div>
+                                
+                                <div class="client-config-preview" id="calc-client-config-box" style="display: none;">
+                                    <h4>Client Billing Terms</h4>
+                                    <div class="terms-grid">
+                                        <div class="term-item">
+                                            <span>Model</span>
+                                            <strong id="calc-preview-model">-</strong>
+                                        </div>
+                                        <div class="term-item">
+                                            <span>Fixed Retainer</span>
+                                            <strong id="calc-preview-retainer">₹0</strong>
+                                        </div>
+                                        <div class="term-item">
+                                            <span>Commission Rate</span>
+                                            <strong id="calc-preview-commission-rate">0%</strong>
+                                        </div>
+                                        <div class="term-item">
+                                            <span>Variable Base</span>
+                                            <strong id="calc-preview-base">-</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group commission-inputs" id="calc-inputs-section" style="display: none;">
+                                    <label for="calc-variable-base" id="lbl-calc-variable-base">Enter Monthly Performance Value</label>
+                                    <div class="input-with-icon">
+                                        <span class="currency-symbol">₹</span>
+                                        <input type="number" id="calc-variable-base" class="form-control form-control-lg" placeholder="0.00">
+                                    </div>
+                                    <span class="helper-text text-muted">Please input the total Revenue / Ad Spend achieved this month for this client.</span>
+                                </div>
+                                
+                                <div class="results-box" id="calc-results-section" style="display: none;">
+                                    <h3>Calculation Breakdown</h3>
+                                    <div class="breakdown-details">
+                                        <div class="breakdown-line">
+                                            <span>Fixed Retainer Fee</span>
+                                            <span id="breakdown-retainer">₹0</span>
+                                        </div>
+                                        <div class="breakdown-line">
+                                            <span>Commission Fee (<span id="breakdown-comm-perc">0%</span>)</span>
+                                            <span id="breakdown-commission">₹0</span>
+                                        </div>
+                                        <hr class="calc-divider">
+                                        <div class="breakdown-line total">
+                                            <span>Grand Total Amount</span>
+                                            <span id="breakdown-total">₹0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="calc-actions">
+                                    <button type="button" id="btn-calc-calculate" class="btn btn-lg btn-secondary">Calculate</button>
+                                    <button type="submit" id="btn-calc-save" class="btn btn-lg btn-primary" disabled>
+                                        <i data-lucide="receipt"></i> Save & View Invoice
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- VIEW: Invoice Hub -->
+            <div id="view-invoice-viewer" class="view-panel">
+                <div class="panel-actions no-print">
+                    <button class="btn btn-outline" onclick="switchTab('billing')">
+                        <i data-lucide="arrow-left"></i> Back to Ledger
+                    </button>
+                    <div class="invoice-hub-actions">
+                        <button class="btn btn-secondary" onclick="window.print()">
+                            <i data-lucide="printer"></i> Print Invoice
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="invoice-container shadow-premium">
+                    <div class="invoice-header">
+                        <div class="invoice-brand">
+                            <div class="logo-icon-lg">KK</div>
+                            <div class="brand-text">
+                                <h2>KK Retainer Services Pvt. Ltd.</h2>
+                                <p class="text-muted">Retainer & Performance Marketing Billing Systems</p>
+                            </div>
+                        </div>
+                        <div class="invoice-meta">
+                            <span class="invoice-badge" id="inv-status">PAID</span>
+                            <div class="meta-item">
+                                <span>Invoice ID:</span>
+                                <strong id="inv-id">INV-2026-0001</strong>
+                            </div>
+                            <div class="meta-item">
+                                <span>Date Issued:</span>
+                                <strong id="inv-date">July 8, 2026</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="invoice-divider">
+                    
+                    <div class="invoice-billing-details">
+                        <div class="billed-from">
+                            <span class="details-label">Billed By:</span>
+                            <h3>KK Retainer Services</h3>
+                            <p>Sector 62, Noida</p>
+                            <p>Uttar Pradesh, India</p>
+                            <p>Email: accounts@kkretainer.com</p>
+                        </div>
+                        <div class="billed-to">
+                            <span class="details-label">Billed To:</span>
+                            <h3 id="inv-client-name">Client Name</h3>
+                            <p id="inv-client-contact">Contact Person</p>
+                            <p id="inv-client-email">Email</p>
+                            <p id="inv-client-phone">Phone</p>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-table-wrapper">
+                        <table class="invoice-table">
+                            <thead>
+                                <tr>
+                                    <th>Billing Month</th>
+                                    <th>Description</th>
+                                    <th>Basis Base Metric</th>
+                                    <th class="text-right">Rate / Retainer</th>
+                                    <th class="text-right">Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr id="inv-row-retainer">
+                                    <td id="inv-row-month">June 2026</td>
+                                    <td>Fixed Monthly Retainer Service Fee</td>
+                                    <td>-</td>
+                                    <td class="text-right" id="inv-rate-retainer">₹50,000</td>
+                                    <td class="text-right" id="inv-total-retainer">₹50,000</td>
+                                </tr>
+                                <tr id="inv-row-commission">
+                                    <td id="inv-row-month-comm">June 2026</td>
+                                    <td>Performance Commission Billing (<span id="inv-comm-rate-badge">5%</span>)</td>
+                                    <td id="inv-comm-basis">₹500,000 (Ad Spend)</td>
+                                    <td class="text-right" id="inv-comm-rate-val">5.5%</td>
+                                    <td class="text-right" id="inv-total-commission">₹27,500</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="invoice-summary">
+                        <div class="dummy-terms">
+                            <h4>Payment Terms</h4>
+                            <p>Please pay the due amount within 15 days of invoice generation.</p>
+                            <p>Bank: HDFC Bank | A/C: 50200045678912 | IFSC: HDFC0000123</p>
+                        </div>
+                        <div class="invoice-totals">
+                            <div class="total-row">
+                                <span>Subtotal:</span>
+                                <strong id="inv-subtotal">₹77,500</strong>
+                            </div>
+                            <div class="total-row">
+                                <span>GST (18%):</span>
+                                <strong id="inv-gst">₹13,950</strong>
+                            </div>
+                            <hr class="summary-divider">
+                            <div class="total-row grand-total">
+                                <span>Total Due:</span>
+                                <strong id="inv-grand-total">₹91,450</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="invoice-footer">
+                        <p>Thank you for your business!</p>
+                        <p class="text-muted small">Computer-generated invoice. No physical signature required.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- MODAL: Add / Edit Client -->
+    <div id="modal-client" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="client-modal-title">Add New Client</h3>
+                <button class="modal-close-btn" id="btn-close-client-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="client-form">
+                <input type="hidden" id="client-id-field">
+                
+                <div class="form-group">
+                    <label for="client-name">Company Name</label>
+                    <input type="text" id="client-name" class="form-control" placeholder="e.g. Apex Marketing Group" required>
+                </div>
+                
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="client-contact">Contact Person</label>
+                        <input type="text" id="client-contact" class="form-control" placeholder="e.g. Rahul Sharma" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-status">Status</label>
+                        <select id="client-status" class="form-control">
+                            <option value="Active">Active</option>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Paused">Paused</option>
+                            <option value="Terminated">Terminated</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="client-email">Email Address</label>
+                        <input type="email" id="client-email" class="form-control" placeholder="e.g. email@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-phone">Phone Number</label>
+                        <input type="text" id="client-phone" class="form-control" placeholder="e.g. +91 98765 43210" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="client-model">Billing Model</label>
+                    <select id="client-model" class="form-control" required>
+                        <option value="Retainer">Fixed Retainer Only</option>
+                        <option value="Commission">Commission Only</option>
+                        <option value="Hybrid">Hybrid (Fixed + Commission)</option>
+                    </select>
+                </div>
+                
+                <div class="billing-config-fields">
+                    <div class="form-group" id="cfg-retainer-group">
+                        <label for="client-retainer-rate">Monthly Fixed Retainer Fee (INR)</label>
+                        <div class="input-with-icon">
+                            <span class="currency-symbol">₹</span>
+                            <input type="number" id="client-retainer-rate" class="form-control" placeholder="0" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row-2" id="cfg-commission-group">
+                        <div class="form-group">
+                            <label for="client-commission-percent">Commission Percentage (%)</label>
+                            <input type="number" id="client-commission-percent" class="form-control" placeholder="0.0" step="0.1" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="client-commission-base">Commission Basis Metric</label>
+                            <select id="client-commission-base" class="form-control">
+                                <option value="Ad Spend">Ad Spend Billing Basis</option>
+                                <option value="Revenue">Client Revenue Basis</option>
+                                <option value="Sales Volume">Product Sales Volume Basis</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-client-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-client">Save Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- MODAL: Log Billing / Transaction -->
+    <div id="modal-billing" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Log Billing Transaction</h3>
+                <button class="modal-close-btn" id="btn-close-billing-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="billing-form">
+                <div class="form-group">
+                    <label for="log-bill-client">Select Client</label>
+                    <select id="log-bill-client" class="form-control" required>
+                        <option value="">Choose Client...</option>
+                    </select>
+                </div>
+                
+                <div id="log-bill-onboarding-alert" class="alert-onboarding" style="display: none; padding: 12px; background-color: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); border-radius: var(--border-radius-md); color: #fca5a5; margin-bottom: 18px; font-weight: 500; align-items: center; gap: 8px;">
+                    <i data-lucide="alert-circle" style="width: 18px; height: 18px; color: var(--danger);"></i>
+                    <span>Client onboarding in process. Billing cannot be logged.</span>
+                </div>
+                
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="log-bill-month">Billing Month</label>
+                        <input type="month" id="log-bill-month" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="log-bill-lob">Line of Business (LOB)</label>
+                        <select id="log-bill-lob" class="form-control" required>
+                            <option value="">Select LOB...</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="log-bill-type-group" style="display: none;">
+                    <label for="log-bill-type">Retainer Type</label>
+                    <select id="log-bill-type" class="form-control">
+                        <option value="Fixed">Fixed</option>
+                        <option value="Variable">Variable</option>
+                    </select>
+                </div>
+                
+                <div class="client-terms-badge-info" id="log-bill-terms-info" style="display: none;">
+                    <!-- Terms info badge will render here -->
+                </div>
+                
+                <div class="form-group" id="log-bill-variable-group" style="display: none;">
+                    <label for="log-bill-variable-value" id="lbl-log-bill-variable-value">Variable Metric Value</label>
+                    <div class="input-with-icon">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="log-bill-variable-value" class="form-control" placeholder="0.00">
+                    </div>
+                    <span class="helper-text text-muted">Input performance value to calculate commission.</span>
+                </div>
+                
+                <div class="form-group" id="log-bill-fixed-group" style="display: none;">
+                    <label for="log-bill-fixed-value">Fixed Retainer Fee (INR)</label>
+                    <div class="input-with-icon">
+                        <span class="currency-symbol">₹</span>
+                        <input type="text" id="log-bill-fixed-value" class="form-control" readonly style="opacity: 0.85; background-color: rgba(255,255,255,0.03); cursor: not-allowed;">
+                    </div>
+                    <span class="helper-text text-muted">Locked fixed retainer portion.</span>
+                </div>
+
+                <div class="form-group" id="log-bill-kpi-group" style="display: none;">
+                    <label for="log-bill-kpi-value">KPI Achievement (%)</label>
+                    <input type="number" id="log-bill-kpi-value" class="form-control" placeholder="100" min="0" max="100" value="100">
+                    <span class="helper-text text-muted">Enter target KPI score reached (0 to 100%).</span>
+                </div>
+                
+                <div class="log-bill-summary" id="log-bill-summary-box" style="display: none;">
+                    <div class="summary-line">
+                        <span>Retainer Amount:</span>
+                        <strong id="log-bill-calc-retainer">₹0</strong>
+                    </div>
+                    <div class="summary-line">
+                        <span>Commission:</span>
+                        <strong id="log-bill-calc-commission">₹0</strong>
+                    </div>
+                    <hr class="calc-divider">
+                    <div class="summary-line total">
+                        <span>Total Invoice:</span>
+                        <strong id="log-bill-calc-total">₹0</strong>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-billing-modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Log & Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script imports -->
+    <script src="mockData.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
