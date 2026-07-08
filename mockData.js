@@ -60,7 +60,7 @@ const initialClients = [
         lobs: [
             {
                 name: "Performance",
-                billingModel: "Retainer",
+                billingModel: "SplitRetainer",
                 totalRetainer: 560000,
                 fixedSharePercent: 100,
                 variableSharePercent: 0,
