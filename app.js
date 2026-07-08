@@ -22,6 +22,18 @@ function saveData() {
     localStorage.setItem("erp_transactions", JSON.stringify(transactions));
 }
 
+function safeCreateIcons() {
+    try {
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+        } else {
+            console.warn("Lucide library not loaded yet.");
+        }
+    } catch (e) {
+        console.error("Lucide failed to render icons:", e);
+    }
+}
+
 // --- UTILITY FUNCTIONS ---
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', {
@@ -84,7 +96,7 @@ function switchTab(targetId) {
     }
 
     // Recalculate icons
-    lucide.createIcons();
+    safeCreateIcons();
 }
 
 // --- DASHBOARD CONTROLLER ---
@@ -145,13 +157,22 @@ function renderDashboard() {
     }
 
     // 3. Render Chart
-    renderChart();
+    try {
+        renderChart();
+    } catch (e) {
+        console.error("Failed to render chart:", e);
+    }
 
     // 4. Populate Mini Calculator Client Select dropdown
     populateMiniCalcDropdown();
 }
 
 function renderChart() {
+    if (typeof Chart === 'undefined') {
+        console.warn("Chart.js is not loaded. Skipping chart rendering.");
+        return;
+    }
+
     const ctx = document.getElementById('revenueChart').getContext('2d');
     
     // Destroy previous chart if it exists
@@ -294,7 +315,7 @@ function renderClients(filterQuery = '') {
         tableBody.appendChild(row);
     });
 
-    lucide.createIcons();
+    safeCreateIcons();
 }
 
 // Open Client Modal (Add mode)
@@ -487,7 +508,7 @@ function renderBillingLedger() {
         tableBody.appendChild(row);
     });
 
-    lucide.createIcons();
+    safeCreateIcons();
 }
 
 // Mark Transaction Status as Paid
@@ -1081,109 +1102,144 @@ document.getElementById('full-calculator-form').addEventListener('submit', (e) =
 });
 
 
-// --- DASHBOARD MINI ESTIMATOR WIDGET CONTROLLER ---
+// --- DASHBOARD MINI LOOKUP & ESTIMATOR CONTROLLER ---
 document.getElementById('mini-calc-client').addEventListener('change', (e) => {
     const clientId = e.target.value;
-    const miniSaveBtn = document.getElementById('btn-mini-save');
+    const buSelect = document.getElementById('mini-calc-bu');
+    const monthInput = document.getElementById('mini-calc-month');
+    const resultsBox = document.getElementById('mini-calc-results');
+
+    buSelect.innerHTML = `<option value="">Choose BU...</option>`;
+    buSelect.disabled = true;
+    monthInput.disabled = true;
+    monthInput.value = '';
+    resultsBox.style.display = 'none';
+
+    if (!clientId) return;
+
+    const client = clients.find(c => c.id === clientId);
+    if (!client || !client.lobs) return;
+
+    // Populate Business Units dropdown
+    client.lobs.forEach(lob => {
+        const opt = document.createElement('option');
+        opt.value = lob.name;
+        opt.textContent = lob.name;
+        buSelect.appendChild(opt);
+    });
+
+    buSelect.disabled = false;
+});
+
+document.getElementById('mini-calc-bu').addEventListener('change', (e) => {
+    const buName = e.target.value;
+    const monthInput = document.getElementById('mini-calc-month');
+    const resultsBox = document.getElementById('mini-calc-results');
+
+    resultsBox.style.display = 'none';
+
+    if (!buName) {
+        monthInput.disabled = true;
+        monthInput.value = '';
+        return;
+    }
+
+    monthInput.disabled = false;
     
-    if (!clientId) {
-        document.getElementById('mini-res-retainer').textContent = "₹0";
-        document.getElementById('mini-res-commission').textContent = "₹0";
-        document.getElementById('mini-res-comm-label').textContent = "Commission (0%):";
-        document.getElementById('mini-res-total').textContent = "₹0";
-        miniSaveBtn.disabled = true;
+    // Auto populate with current month if empty
+    if (!monthInput.value) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        monthInput.value = `${year}-${month}`;
+    }
+
+    runMiniLookup();
+});
+
+document.getElementById('mini-calc-month').addEventListener('input', runMiniLookup);
+
+function runMiniLookup() {
+    const clientId = document.getElementById('mini-calc-client').value;
+    const buName = document.getElementById('mini-calc-bu').value;
+    const monthVal = document.getElementById('mini-calc-month').value;
+    const resultsBox = document.getElementById('mini-calc-results');
+
+    if (!clientId || !buName || !monthVal) {
+        resultsBox.style.display = 'none';
         return;
     }
 
     const client = clients.find(c => c.id === clientId);
     if (!client) return;
 
-    // Update Label based on commission metric type
-    document.getElementById('lbl-mini-calc-base').textContent = client.billingModel !== 'Retainer' 
-        ? `Monthly ${client.commissionBase} (INR)` 
-        : 'Fixed billing (no var metric)';
+    const bu = client.lobs.find(l => l.name === buName);
+    if (!bu) return;
 
-    // Trigger update calculation
-    runMiniCalculation(client);
-});
+    // Parse month (YYYY-MM to "Month Name YYYY")
+    const monthParts = monthVal.split('-');
+    const year = monthParts[0];
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = parseInt(monthParts[1]) - 1;
+    const formattedMonth = `${monthNames[monthIndex]} ${year}`;
 
-document.getElementById('mini-calc-base').addEventListener('input', () => {
-    const clientId = document.getElementById('mini-calc-client').value;
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-        runMiniCalculation(client);
+    // Find existing transaction in ledger
+    const existingTx = transactions.find(t => 
+        t.clientId === clientId && 
+        t.lobName === buName && 
+        t.billingMonth === formattedMonth
+    );
+
+    const statusBadge = document.getElementById('mini-res-status');
+    const resFixed = document.getElementById('mini-res-fixed');
+    const resVariable = document.getElementById('mini-res-variable');
+    const resTotal = document.getElementById('mini-res-total');
+
+    if (existingTx) {
+        // Already Billed state
+        statusBadge.textContent = `BILLED (${existingTx.status.toUpperCase()})`;
+        statusBadge.className = existingTx.status === 'Paid' ? 'badge badge-success' : 'badge badge-warning';
+        statusBadge.style.backgroundColor = '';
+        statusBadge.style.color = '';
+
+        resFixed.textContent = formatCurrency(existingTx.retainerAmount);
+        resVariable.textContent = formatCurrency(existingTx.commissionAmount);
+        resTotal.textContent = formatCurrency(existingTx.totalAmount);
+    } else {
+        // Not Billed state - Calculate config targets
+        statusBadge.textContent = "NOT YET BILLED";
+        statusBadge.className = "badge";
+        statusBadge.style.backgroundColor = "rgba(156, 163, 175, 0.15)";
+        statusBadge.style.color = "#9ca3af";
+
+        let fixedAmt = 0;
+        let variableAmt = 0;
+
+        if (bu.billingModel === 'SplitRetainer') {
+            fixedAmt = bu.fixedAmount !== undefined ? bu.fixedAmount : bu.totalRetainer * (bu.fixedSharePercent / 100);
+            variableAmt = bu.variableAmount !== undefined ? bu.variableAmount : bu.totalRetainer * (bu.variableSharePercent / 100);
+        } else if (bu.billingModel === 'Retainer') {
+            fixedAmt = bu.totalRetainer;
+            variableAmt = 0;
+        } else if (bu.billingModel === 'Hybrid') {
+            fixedAmt = bu.totalRetainer;
+            variableAmt = 0; // commission is ad-hoc base metric dependent
+        } else if (bu.billingModel === 'Commission') {
+            fixedAmt = 0;
+            variableAmt = 0;
+        }
+
+        resFixed.textContent = formatCurrency(fixedAmt);
+        resVariable.textContent = bu.billingModel === 'SplitRetainer' 
+            ? `${formatCurrency(variableAmt)} (Max Potential)` 
+            : (bu.billingModel === 'Retainer' ? '₹0' : 'Commission Dynamic');
+        resTotal.textContent = bu.billingModel === 'SplitRetainer'
+            ? `${formatCurrency(fixedAmt + variableAmt)} (Max Potential)`
+            : formatCurrency(fixedAmt);
     }
-});
 
-function runMiniCalculation(client) {
-    const baseVal = parseFloat(document.getElementById('mini-calc-base').value) || 0;
-    
-    let retainerAmt = client.retainerRate || 0;
-    let commissionAmt = 0;
-
-    if (client.billingModel === 'Commission' || client.billingModel === 'Hybrid') {
-        commissionAmt = (baseVal * (client.commissionPercent / 100));
-    }
-
-    const total = retainerAmt + commissionAmt;
-
-    document.getElementById('mini-res-retainer').textContent = formatCurrency(retainerAmt);
-    document.getElementById('mini-res-comm-label').textContent = `Commission (${client.commissionPercent}%):`;
-    document.getElementById('mini-res-commission').textContent = formatCurrency(commissionAmt);
-    document.getElementById('mini-res-total').textContent = formatCurrency(total);
-
-    document.getElementById('btn-mini-save').disabled = false;
+    resultsBox.style.display = 'block';
 }
-
-// Mini Calc Save Button Clicked
-document.getElementById('btn-mini-save').addEventListener('click', () => {
-    const clientId = document.getElementById('mini-calc-client').value;
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return;
-
-    const baseVal = parseFloat(document.getElementById('mini-calc-base').value) || 0;
-    
-    const now = new Date();
-    const formattedMonth = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-
-    let retainerAmt = client.retainerRate || 0;
-    let commissionAmt = 0;
-
-    if (client.billingModel === 'Commission' || client.billingModel === 'Hybrid') {
-        commissionAmt = (baseVal * (client.commissionPercent / 100));
-    }
-
-    const total = retainerAmt + commissionAmt;
-    const newTxId = generateId('t');
-
-    const newTx = {
-        id: newTxId,
-        clientId: client.id,
-        clientName: client.name,
-        date: now.toISOString().split('T')[0],
-        billingMonth: formattedMonth,
-        retainerAmount: retainerAmt,
-        commissionAmount: commissionAmt,
-        variableBaseAmount: baseVal,
-        totalAmount: total,
-        status: "Pending",
-        dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    };
-
-    transactions.push(newTx);
-    saveData();
-
-    // Reset Mini estimator form
-    document.getElementById('mini-calc-form').reset();
-    document.getElementById('btn-mini-save').disabled = true;
-    document.getElementById('mini-res-retainer').textContent = "₹0";
-    document.getElementById('mini-res-commission').textContent = "₹0";
-    document.getElementById('mini-res-comm-label').textContent = "Commission (0%):";
-    document.getElementById('mini-res-total').textContent = "₹0";
-
-    // Switch view to invoice viewer
-    viewInvoice(newTxId);
-});
 
 
 // --- INVOICE VIEW CONTROLLER ---

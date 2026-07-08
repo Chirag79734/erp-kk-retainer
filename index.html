@@ -140,44 +140,50 @@
                         </div>
                     </div>
                     
-                    <!-- Quick Commission Calculator Preview -->
+                    <!-- Retainer Lookup & Tracker Card -->
                     <div class="dashboard-card mini-calc-card">
                         <div class="card-header">
-                            <h3>Quick Estimator</h3>
-                            <i data-lucide="zap" class="text-gold"></i>
+                            <h3>Retainer Lookup & Tracker</h3>
+                            <i data-lucide="search" class="text-gold"></i>
                         </div>
                         <div class="card-body">
                             <form id="mini-calc-form">
                                 <div class="form-group">
-                                    <label for="mini-calc-client">Client</label>
+                                    <label for="mini-calc-client">Select Client</label>
                                     <select id="mini-calc-client" class="form-control" required>
                                         <option value="">Choose Client...</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label for="mini-calc-base" id="lbl-mini-calc-base">Monthly Ad Spend / Sales</label>
-                                    <div class="input-with-icon">
-                                        <span class="currency-symbol">₹</span>
-                                        <input type="number" id="mini-calc-base" class="form-control" placeholder="Enter amount" required>
-                                    </div>
+                                    <label for="mini-calc-bu">Business Unit</label>
+                                    <select id="mini-calc-bu" class="form-control" required disabled>
+                                        <option value="">Choose BU...</option>
+                                    </select>
                                 </div>
-                                <div class="calc-results-preview">
-                                    <div class="result-row">
-                                        <span>Retainer Rate:</span>
-                                        <strong id="mini-res-retainer">₹0</strong>
+                                <div class="form-group">
+                                    <label for="mini-calc-month">Billing Month</label>
+                                    <input type="month" id="mini-calc-month" class="form-control" required disabled>
+                                </div>
+                                
+                                <div class="calc-results-preview" id="mini-calc-results" style="display: none; margin-top: 18px; border-top: 1px dashed var(--border-color); padding-top: 14px;">
+                                    <div class="result-row" style="margin-bottom: 8px;">
+                                        <span>Status:</span>
+                                        <span id="mini-res-status" class="badge">NOT YET BILLED</span>
                                     </div>
                                     <div class="result-row">
-                                        <span id="mini-res-comm-label">Commission (0%):</span>
-                                        <strong id="mini-res-commission">₹0</strong>
+                                        <span>Fixed Retainer:</span>
+                                        <strong id="mini-res-fixed">₹0</strong>
                                     </div>
+                                    <div class="result-row">
+                                        <span>Variable Retainer:</span>
+                                        <strong id="mini-res-variable">₹0</strong>
+                                    </div>
+                                    <hr class="summary-divider" style="margin: 10px 0;">
                                     <div class="result-row total">
-                                        <span>Estimated Total:</span>
+                                        <span>Total Retainer:</span>
                                         <strong id="mini-res-total">₹0</strong>
                                     </div>
                                 </div>
-                                <button type="button" id="btn-mini-save" class="btn btn-outline btn-block" disabled>
-                                    <i data-lucide="save"></i> Save & Log Billing
-                                </button>
                             </form>
                         </div>
                     </div>
