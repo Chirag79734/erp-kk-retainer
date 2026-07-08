@@ -34,7 +34,7 @@ jobs:
           fi
 
           # Check 2: Block committed private keys
-          if grep -r -q "BEGIN PRIVATE KEY\|BEGIN RSA PRIVATE KEY" . --exclude-dir=.git 2>/dev/null; then
+          if grep -r -q "BEGIN PRIVATE KEY\|BEGIN RSA PRIVATE KEY" . --exclude-dir=.git --exclude-dir=.github 2>/dev/null; then
             echo "::error::Critical Security Risk: Private key files detected inside the repository!"
             exit 1
           fi
