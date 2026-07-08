@@ -16,6 +16,8 @@ const initialClients = [
                 totalRetainer: 2200000,
                 fixedSharePercent: 85,
                 variableSharePercent: 15,
+                fixedAmount: 1870000,
+                variableAmount: 330000,
                 variableMetric: "Ad Spend"
             },
             {
@@ -24,6 +26,8 @@ const initialClients = [
                 totalRetainer: 400000,
                 fixedSharePercent: 85,
                 variableSharePercent: 15,
+                fixedAmount: 340000,
+                variableAmount: 60000,
                 variableMetric: "KPIs"
             },
             {
@@ -32,6 +36,8 @@ const initialClients = [
                 totalRetainer: 211000,
                 fixedSharePercent: 85,
                 variableSharePercent: 15,
+                fixedAmount: 179350,
+                variableAmount: 31650,
                 variableMetric: "KPIs"
             },
             {
@@ -58,15 +64,19 @@ const initialClients = [
                 totalRetainer: 560000,
                 fixedSharePercent: 100,
                 variableSharePercent: 0,
+                fixedAmount: 560000,
+                variableAmount: 0,
                 variableMetric: "None"
             },
             {
                 name: "SEO",
-                billingModel: "Retainer",
-                totalRetainer: 300000,
-                fixedSharePercent: 100,
-                variableSharePercent: 0,
-                variableMetric: "None"
+                billingModel: "SplitRetainer",
+                totalRetainer: 550000,
+                fixedSharePercent: 54.54,
+                variableSharePercent: 45.46,
+                fixedAmount: 300000,
+                variableAmount: 250000,
+                variableMetric: "KPIs"
             }
         ]
     },

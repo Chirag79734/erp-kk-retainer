@@ -781,7 +781,7 @@ function triggerLogBillTypeChange(client, lob) {
         if (billType === 'Fixed') {
             // Show Fixed Retainer group (Read-only)
             document.getElementById('log-bill-fixed-group').style.display = 'block';
-            const fixedVal = lob.totalRetainer * (lob.fixedSharePercent / 100);
+            const fixedVal = lob.fixedAmount !== undefined ? lob.fixedAmount : lob.totalRetainer * (lob.fixedSharePercent / 100);
             document.getElementById('log-bill-fixed-value').value = fixedVal;
 
             // Hide KPI & Variable
@@ -825,11 +825,11 @@ function runLogBillCalculation() {
     if (lob.billingModel === 'SplitRetainer') {
         const billType = document.getElementById('log-bill-type').value;
         if (billType === 'Fixed') {
-            retainerAmt = lob.totalRetainer * (lob.fixedSharePercent / 100);
+            retainerAmt = lob.fixedAmount !== undefined ? lob.fixedAmount : lob.totalRetainer * (lob.fixedSharePercent / 100);
             commissionAmt = 0;
         } else if (billType === 'Variable') {
             retainerAmt = 0;
-            const maxVarAmt = lob.totalRetainer * (lob.variableSharePercent / 100);
+            const maxVarAmt = lob.variableAmount !== undefined ? lob.variableAmount : lob.totalRetainer * (lob.variableSharePercent / 100);
             commissionAmt = maxVarAmt * (kpiVal / 100);
         }
     } else if (lob.billingModel === 'Retainer') {
@@ -880,11 +880,11 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
 
     if (lob.billingModel === 'SplitRetainer') {
         if (billType === 'Fixed') {
-            retainerAmt = lob.totalRetainer * (lob.fixedSharePercent / 100);
+            retainerAmt = lob.fixedAmount !== undefined ? lob.fixedAmount : lob.totalRetainer * (lob.fixedSharePercent / 100);
             commissionAmt = 0;
         } else if (billType === 'Variable') {
             retainerAmt = 0;
-            const maxVarAmt = lob.totalRetainer * (lob.variableSharePercent / 100);
+            const maxVarAmt = lob.variableAmount !== undefined ? lob.variableAmount : lob.totalRetainer * (lob.variableSharePercent / 100);
             commissionAmt = maxVarAmt * (kpiVal / 100);
         }
     } else if (lob.billingModel === 'Retainer') {
