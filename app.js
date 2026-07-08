@@ -645,7 +645,10 @@ document.getElementById('filter-billing-status').addEventListener('change', rend
 
 
 // --- LOG BILL MODAL CONTROLLER ---
-document.getElementById('btn-quick-bill').addEventListener('click', openBillingModal);
+const quickBillBtn = document.getElementById('btn-quick-bill');
+if (quickBillBtn) {
+    quickBillBtn.addEventListener('click', openBillingModal);
+}
 document.getElementById('btn-create-bill').addEventListener('click', openBillingModal);
 
 function openBillingModal() {
