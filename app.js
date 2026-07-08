@@ -685,7 +685,7 @@ function triggerLogBillLobChange(client, lob) {
     const termsBox = document.getElementById('log-bill-terms-info');
     termsBox.style.display = 'flex';
     
-    let termsHTML = `<div><strong>LOB:</strong> ${lob.name}</div>`;
+    let termsHTML = `<div><strong>Business Unit:</strong> ${lob.name}</div>`;
     if (lob.billingModel === 'SplitRetainer') {
         termsHTML += `
             <div><strong>Model:</strong> Split Retainer (85/15)</div>

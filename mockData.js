@@ -21,6 +21,16 @@ const initialClients = [
                 variableMetric: "Ad Spend"
             },
             {
+                name: "Branding",
+                billingModel: "SplitRetainer",
+                totalRetainer: 1000000,
+                fixedSharePercent: 85,
+                variableSharePercent: 15,
+                fixedAmount: 850000,
+                variableAmount: 150000,
+                variableMetric: "KPIs"
+            },
+            {
                 name: "Airtel Thanks",
                 billingModel: "SplitRetainer",
                 totalRetainer: 400000,
@@ -51,7 +61,7 @@ const initialClients = [
     },
     {
         id: "c2",
-        name: "ITC Hotel",
+        name: "ITC Hotels",
         contactName: "Sanjay Dutt",
         email: "finance@itchotels.in",
         phone: "+91 99110 54321",
@@ -71,10 +81,20 @@ const initialClients = [
             {
                 name: "SEO",
                 billingModel: "SplitRetainer",
-                totalRetainer: 550000,
-                fixedSharePercent: 54.54,
-                variableSharePercent: 45.46,
+                totalRetainer: 300000,
+                fixedSharePercent: 100,
+                variableSharePercent: 0,
                 fixedAmount: 300000,
+                variableAmount: 0,
+                variableMetric: "None"
+            },
+            {
+                name: "KPI Variable",
+                billingModel: "SplitRetainer",
+                totalRetainer: 250000,
+                fixedSharePercent: 0,
+                variableSharePercent: 100,
+                fixedAmount: 0,
                 variableAmount: 250000,
                 variableMetric: "KPIs"
             }
@@ -139,7 +159,7 @@ const initialTransactions = [
     {
         id: "t2",
         clientId: "c2",
-        clientName: "ITC Hotel",
+        clientName: "ITC Hotels",
         lobName: "Performance",
         invoiceNumber: "INV/2026/002",
         date: "2026-06-30",
