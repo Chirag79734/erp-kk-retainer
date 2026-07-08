@@ -190,10 +190,21 @@ const initialTransactions = [
     }
 ];
 
-// Seed to localStorage only if empty to prevent data loss on page refreshes
-if (!localStorage.getItem("erp_clients")) {
+// Seed to localStorage only if empty or missing to prevent data loss on page refreshes
+try {
+    const clientsStored = JSON.parse(localStorage.getItem("erp_clients"));
+    if (!clientsStored || !Array.isArray(clientsStored) || clientsStored.length === 0) {
+        localStorage.setItem("erp_clients", JSON.stringify(initialClients));
+    }
+} catch (e) {
     localStorage.setItem("erp_clients", JSON.stringify(initialClients));
 }
-if (!localStorage.getItem("erp_transactions")) {
+
+try {
+    const txsStored = JSON.parse(localStorage.getItem("erp_transactions"));
+    if (!txsStored || !Array.isArray(txsStored) || txsStored.length === 0) {
+        localStorage.setItem("erp_transactions", JSON.stringify(initialTransactions));
+    }
+} catch (e) {
     localStorage.setItem("erp_transactions", JSON.stringify(initialTransactions));
 }

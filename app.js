@@ -156,154 +156,98 @@ function renderDashboard() {
         });
     }
 
-    // 3. Populate Checklist Dropdown & Table
-    populateChecklistMonthDropdown();
-    renderBillingChecklist();
+    // 3. Render Chart
+    try {
+        renderChart();
+    } catch (e) {
+        console.error("Failed to render chart:", e);
+    }
 
     // 4. Populate Mini Calculator Client Select dropdown
     populateMiniCalcDropdown();
 }
 
-function populateChecklistMonthDropdown() {
-    const select = document.getElementById('checklist-month-select');
-    if (!select) return;
-    
-    // Save current selection if any
-    const prevVal = select.value;
-    
-    select.innerHTML = '';
-    
-    const now = new Date();
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    
-    // We populate 3 months back and 2 months ahead
-    for (let i = -3; i <= 2; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-        const monthStr = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-        const opt = document.createElement('option');
-        opt.value = monthStr;
-        opt.textContent = monthStr;
-        
-        if (prevVal) {
-            if (monthStr === prevVal) opt.selected = true;
-        } else if (i === 0) {
-            opt.selected = true;
-        }
-        
-        select.appendChild(opt);
-    }
-}
-
-function renderBillingChecklist() {
-    const select = document.getElementById('checklist-month-select');
-    if (!select) return;
-    const selectedMonth = select.value;
-    
-    const tbody = document.querySelector('#billing-checklist-table tbody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-    
-    const rowsData = [];
-    clients.forEach(client => {
-        if (!client.lobs) return;
-        
-        client.lobs.forEach(bu => {
-            // Find existing transaction logged in ledger for this BU and month
-            const existingTx = transactions.find(t => 
-                t.clientId === client.id && 
-                t.lobName === bu.name && 
-                t.billingMonth === selectedMonth
-            );
-            
-            rowsData.push({
-                client,
-                bu,
-                existingTx
-            });
-        });
-    });
-    
-    if (rowsData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="text-muted text-center" style="padding: 24px;">No active clients/business units configured.</td></tr>`;
+function renderChart() {
+    if (typeof Chart === 'undefined') {
+        console.warn("Chart.js is not loaded. Skipping chart rendering.");
         return;
     }
+
+    const ctx = document.getElementById('revenueChart').getContext('2d');
     
-    rowsData.forEach(item => {
-        const row = document.createElement('tr');
-        
-        // Format monthly budget
-        let budgetDesc = "";
-        if (item.bu.billingModel === 'SplitRetainer') {
-            const fixed = item.bu.fixedAmount !== undefined ? item.bu.fixedAmount : item.bu.totalRetainer * (item.bu.fixedSharePercent / 100);
-            const variable = item.bu.variableAmount !== undefined ? item.bu.variableAmount : item.bu.totalRetainer * (item.bu.variableSharePercent / 100);
-            budgetDesc = `${formatCurrency(fixed)} (F) + ${formatCurrency(variable)} (V)`;
-        } else if (item.bu.billingModel === 'Retainer') {
-            budgetDesc = `${formatCurrency(item.bu.totalRetainer)} (Fixed)`;
-        } else if (item.bu.billingModel === 'Commission') {
-            budgetDesc = `Commission-based (${item.bu.commissionPercent}%)`;
-        } else {
-            budgetDesc = `${formatCurrency(item.bu.totalRetainer)}`;
+    // Destroy previous chart if it exists
+    if (revenueChart) {
+        revenueChart.destroy();
+    }
+
+    // Aggregate monthly data (grouped by billingMonth)
+    const monthlySummary = {};
+    transactions.forEach(t => {
+        const month = t.billingMonth;
+        if (!monthlySummary[month]) {
+            monthlySummary[month] = { retainer: 0, commission: 0 };
         }
-        
-        // Status Badge & Action Buttons
-        let statusHTML = "";
-        let actionHTML = "";
-        
-        if (item.client.status === 'Upcoming') {
-            statusHTML = `<span class="badge" style="background-color: rgba(99, 102, 241, 0.15); color: var(--primary); font-weight: 500;">Onboarding</span>`;
-            actionHTML = `<button class="btn btn-sm btn-outline" disabled style="opacity: 0.5; padding: 4px 10px;">Locked</button>`;
-        } else if (item.existingTx) {
-            const tx = item.existingTx;
-            statusHTML = `<span class="badge ${tx.status === 'Paid' ? 'badge-success' : 'badge-warning'}">${tx.invoiceNumber || 'Billed'}</span>`;
-            actionHTML = `<button class="btn btn-sm btn-secondary" onclick="viewInvoice('${tx.id}')" style="padding: 4px 10px;">View Invoice</button>`;
-        } else {
-            statusHTML = `<span class="badge" style="background-color: rgba(239, 68, 68, 0.12); color: var(--danger); font-weight: 500;">Missing Invoice</span>`;
-            actionHTML = `<button class="btn btn-sm btn-primary" onclick="quickCreateInvoice('${item.client.id}', '${item.bu.name}', '${selectedMonth}')" style="background-color: var(--primary); border-color: var(--primary); padding: 4px 10px;">Bill BU</button>`;
+        monthlySummary[month].retainer += t.retainerAmount;
+        monthlySummary[month].commission += t.commissionAmount;
+    });
+
+    // Sort months (simple alphabetical sort for mock data like "May 2026", "June 2026")
+    const monthsSorted = Object.keys(monthlySummary).sort((a, b) => {
+        // Parse date for comparison
+        const da = new Date(a);
+        const db = new Date(b);
+        return da - db;
+    });
+
+    const retainerData = [];
+    const commissionData = [];
+    monthsSorted.forEach(m => {
+        retainerData.push(monthlySummary[m].retainer);
+        commissionData.push(monthlySummary[m].commission);
+    });
+
+    revenueChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: monthsSorted,
+            datasets: [
+                {
+                    label: 'Fixed Retainers',
+                    data: retainerData,
+                    backgroundColor: '#6366f1',
+                    borderRadius: 6
+                },
+                {
+                    label: 'Commissions',
+                    data: commissionData,
+                    backgroundColor: '#10b981',
+                    borderRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    stacked: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                y: {
+                    stacked: true,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: '#f8fafc', font: { family: 'Inter' } }
+                }
+            }
         }
-        
-        row.innerHTML = `
-            <td><strong>${item.client.name}</strong></td>
-            <td>${item.bu.name}</td>
-            <td>${budgetDesc}</td>
-            <td>${statusHTML}</td>
-            <td>${actionHTML}</td>
-        `;
-        tbody.appendChild(row);
     });
 }
-
-window.quickCreateInvoice = function(clientId, buName, monthStr) {
-    openBillingModal();
-    
-    // 1. Set Client
-    const clientSelect = document.getElementById('log-bill-client');
-    clientSelect.value = clientId;
-    
-    // Trigger BU load
-    window.triggerLogBillClientSelect(clientId);
-    
-    // 2. Set BU
-    const buSelect = document.getElementById('log-bill-lob');
-    buSelect.value = buName;
-    
-    // Trigger BU details configure
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-        const bu = client.lobs.find(l => l.name === buName);
-        if (bu) {
-            triggerLogBillLobChange(client, bu);
-        }
-    }
-    
-    // 3. Format month selection string (e.g. "July 2026" to "2026-07")
-    const monthParts = monthStr.split(' ');
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthIndex = monthNames.indexOf(monthParts[0]) + 1;
-    const year = monthParts[1];
-    const monthVal = `${year}-${String(monthIndex).padStart(2, '0')}`;
-    
-    document.getElementById('log-bill-month').value = monthVal;
-};
 
 // --- CLIENTS DIRECTORY CONTROLLER ---
 function renderClients(filterQuery = '') {
@@ -689,12 +633,9 @@ function hideLogBillGroups() {
 
 // Handle Client Select on Log Bill form
 document.getElementById('log-bill-client').addEventListener('change', (e) => {
-    window.triggerLogBillClientSelect(e.target.value);
-});
-
-window.triggerLogBillClientSelect = function(clientId) {
+    const clientId = e.target.value;
     const lobSelect = document.getElementById('log-bill-lob');
-    lobSelect.innerHTML = `<option value="">Select Business Unit...</option>`;
+    lobSelect.innerHTML = `<option value="">Select LOB...</option>`;
     
     const alertBox = document.getElementById('log-bill-onboarding-alert');
     const submitBtn = document.querySelector('#billing-form button[type="submit"]');
@@ -725,7 +666,7 @@ window.triggerLogBillClientSelect = function(clientId) {
 
     if (!client.lobs) return;
 
-    // Populate BUs dropdown
+    // Populate LOBs dropdown
     client.lobs.forEach(lob => {
         const opt = document.createElement('option');
         opt.value = lob.name;
@@ -740,7 +681,7 @@ window.triggerLogBillClientSelect = function(clientId) {
     } else {
         hideLogBillGroups();
     }
-};
+});
 
 // Handle LOB Select on Log Bill form
 document.getElementById('log-bill-lob').addEventListener('change', (e) => {
@@ -1419,11 +1360,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initData();
     populateDropdowns();
-
-    const checklistSelect = document.getElementById('checklist-month-select');
-    if (checklistSelect) {
-        checklistSelect.addEventListener('change', renderBillingChecklist);
-    }
-
     switchTab('dashboard'); // Start on Dashboard
 });
