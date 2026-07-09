@@ -1317,17 +1317,18 @@ document.getElementById('calc-client').addEventListener('change', (e) => {
     const client = clients.find(c => c.id === clientId);
     if (!client) return;
 
-    if (client.status === 'Upcoming') {
+    if (client.status === 'Upcoming' || client.id === 'c3' || client.id === 'c4') {
         alertBox.style.display = 'flex';
         calcBtn.disabled = true;
         document.getElementById('calc-client-config-box').style.display = 'none';
         document.getElementById('calc-inputs-section').style.display = 'none';
         document.getElementById('calc-results-section').style.display = 'none';
-        document.getElementById('btn-calc-save').disabled = true;
+        document.getElementById('btn-calc-save').style.display = 'none';
         return;
     } else {
         alertBox.style.display = 'none';
         calcBtn.disabled = false;
+        document.getElementById('btn-calc-save').style.display = 'inline-flex';
     }
 
     // Show Terms box
@@ -1362,7 +1363,7 @@ document.getElementById('calc-client').addEventListener('change', (e) => {
     document.getElementById('btn-calc-save').disabled = true;
 });
 
-// Trigger Calculation
+// Trigger Calculation (Look up actual logged billing entries)
 document.getElementById('btn-calc-calculate').addEventListener('click', () => {
     const clientId = document.getElementById('calc-client').value;
     if (!clientId) {
@@ -1373,71 +1374,43 @@ document.getElementById('btn-calc-calculate').addEventListener('click', () => {
     const client = clients.find(c => c.id === clientId);
     if (!client) return;
 
-    const baseVal = parseFloat(document.getElementById('calc-variable-base').value) || 0;
-    
-    let retainerAmt = client.retainerRate || 0;
-    let commissionAmt = 0;
-
-    if (client.billingModel === 'Commission' || client.billingModel === 'Hybrid') {
-        commissionAmt = (baseVal * (client.commissionPercent / 100));
+    // Check onboarding alert
+    if (client.status === 'Upcoming' || client.id === 'c3' || client.id === 'c4') {
+        alert("Client On-boarding in process");
+        return;
     }
 
-    const total = retainerAmt + commissionAmt;
+    // Get selected billing month
+    const rawMonth = document.getElementById('calc-billing-month').value;
+    if (!rawMonth) {
+        alert("Please select a billing month.");
+        return;
+    }
+    const dateObj = new Date(rawMonth + "-01");
+    const formattedMonth = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }); // e.g. "July 2026"
+
+    // Find actual transactions logged for this client and month
+    const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === formattedMonth);
+
+    // Sum fixed retainer portions (t.retainerAmount)
+    const fixedRetainerSum = clientTxs.reduce((sum, t) => sum + (t.retainerAmount || 0), 0);
+
+    // Sum variable retainer portions (t.commissionAmount)
+    const variableRetainerSum = clientTxs.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
+
+    // Sum total
+    const totalBilling = fixedRetainerSum + variableRetainerSum;
 
     // Display Breakdown
     document.getElementById('calc-results-section').style.display = 'block';
-    document.getElementById('breakdown-retainer').textContent = formatCurrency(retainerAmt);
-    document.getElementById('breakdown-comm-perc').textContent = `${client.commissionPercent}%`;
-    document.getElementById('breakdown-commission').textContent = formatCurrency(commissionAmt);
-    document.getElementById('breakdown-total').textContent = formatCurrency(total);
-
-    // Enable Save action
-    document.getElementById('btn-calc-save').disabled = false;
+    document.getElementById('breakdown-retainer').textContent = formatCurrency(fixedRetainerSum);
+    document.getElementById('breakdown-commission').textContent = formatCurrency(variableRetainerSum);
+    document.getElementById('breakdown-total').textContent = formatCurrency(totalBilling);
 });
 
-// Submit/Save Calculator transaction
+// Block default form submission
 document.getElementById('full-calculator-form').addEventListener('submit', (e) => {
     e.preventDefault();
-
-    const clientId = document.getElementById('calc-client').value;
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return;
-
-    const rawMonth = document.getElementById('calc-billing-month').value;
-    const dateObj = new Date(rawMonth + "-01");
-    const formattedMonth = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-
-    const baseVal = parseFloat(document.getElementById('calc-variable-base').value) || 0;
-
-    let retainerAmt = client.retainerRate || 0;
-    let commissionAmt = 0;
-
-    if (client.billingModel === 'Commission' || client.billingModel === 'Hybrid') {
-        commissionAmt = (baseVal * (client.commissionPercent / 100));
-    }
-
-    const total = retainerAmt + commissionAmt;
-    const newTxId = generateId('t');
-
-    const newTx = {
-        id: newTxId,
-        clientId: client.id,
-        clientName: client.name,
-        date: new Date().toISOString().split('T')[0],
-        billingMonth: formattedMonth,
-        retainerAmount: retainerAmt,
-        commissionAmount: commissionAmt,
-        variableBaseAmount: baseVal,
-        totalAmount: total,
-        status: "Pending",
-        dueDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-    };
-
-    transactions.push(newTx);
-    saveData();
-
-    // Redirect straight to invoice display
-    viewInvoice(newTxId);
 });
 
 
@@ -1695,7 +1668,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.7");
+    console.log("KK ERP Loaded - v1.1.8");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard

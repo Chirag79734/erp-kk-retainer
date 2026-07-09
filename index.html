@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="styles.css?v=1.1.7">
+    <link rel="stylesheet" href="styles.css?v=1.1.8">
 </head>
 <body>
     <div class="app-container">
@@ -485,7 +485,7 @@
                                 
                                 <div id="calc-onboarding-alert" class="alert-onboarding" style="display: none; padding: 16px; background-color: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); border-radius: var(--border-radius-md); color: #fca5a5; margin: 20px 0; font-weight: 500; align-items: center; gap: 8px;">
                                     <i data-lucide="alert-circle" style="width: 20px; height: 20px; color: var(--danger);"></i>
-                                    <span>Client onboarding in process. Calculations cannot be performed yet.</span>
+                                    <span>Client On-boarding in process</span>
                                 </div>
                                 
                                 <div class="client-config-preview" id="calc-client-config-box" style="display: none;">
@@ -520,28 +520,28 @@
                                 </div>
                                 
                                 <div class="results-box" id="calc-results-section" style="display: none;">
-                                    <h3>Calculation Breakdown</h3>
+                                    <h3>Monthly Billing Summary</h3>
                                     <div class="breakdown-details">
                                         <div class="breakdown-line">
-                                            <span>Fixed Retainer Fee</span>
+                                            <span>Fixed Retainer</span>
                                             <span id="breakdown-retainer">₹0</span>
                                         </div>
                                         <div class="breakdown-line">
-                                            <span>Commission Fee (<span id="breakdown-comm-perc">0%</span>)</span>
+                                            <span>Variable Retainer</span>
                                             <span id="breakdown-commission">₹0</span>
                                         </div>
                                         <hr class="calc-divider">
                                         <div class="breakdown-line total">
-                                            <span>Grand Total Amount</span>
+                                            <span>Total Billing</span>
                                             <span id="breakdown-total">₹0</span>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <div class="calc-actions">
-                                    <button type="button" id="btn-calc-calculate" class="btn btn-lg btn-secondary">Calculate</button>
-                                    <button type="submit" id="btn-calc-save" class="btn btn-lg btn-primary" disabled>
-                                        <i data-lucide="receipt"></i> Save & View Invoice
+                                    <button type="button" id="btn-calc-calculate" class="btn btn-lg btn-secondary" style="cursor: pointer;">Calculate</button>
+                                    <button type="button" id="btn-calc-save" class="btn btn-lg btn-primary" onclick="switchTab('billing')" style="cursor: pointer;">
+                                        <i data-lucide="list"></i> View Billing Ledger
                                     </button>
                                 </div>
                             </form>
@@ -864,7 +864,7 @@
     </div>
 
     <!-- Script imports -->
-    <script src="mockData.js?v=1.1.7"></script>
-    <script src="app.js?v=1.1.7"></script>
+    <script src="mockData.js?v=1.1.8"></script>
+    <script src="app.js?v=1.1.8"></script>
 </body>
 </html>
