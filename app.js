@@ -166,7 +166,86 @@ function renderDashboard() {
 
     // 4. Populate Mini Calculator Client Select dropdown
     populateMiniCalcDropdown();
+
+    // 5. Render Billing Action Alerts
+    renderBillingAlerts();
 }
+
+function renderBillingAlerts() {
+    const alertsContainer = document.getElementById('billing-alerts-container');
+    if (!alertsContainer) return;
+    alertsContainer.innerHTML = '';
+
+    const activeClients = clients.filter(c => c.status === 'Active');
+    
+    // Determine the current month dynamically
+    const now = new Date();
+    const currentMonthName = now.toLocaleDateString('en-US', { month: 'long' });
+    const currentYear = now.getFullYear();
+    const currentMonthStr = `${currentMonthName} ${currentYear}`; // e.g. "July 2026" (current month context)
+
+    const pendingAlerts = [];
+
+    activeClients.forEach(c => {
+        // Check if there is any logged billing transaction in the current billingMonth
+        const hasBilled = transactions.some(t => t.clientId === c.id && t.billingMonth === currentMonthStr);
+        if (!hasBilled) {
+            pendingAlerts.push(c);
+        }
+    });
+
+    if (pendingAlerts.length === 0) {
+        alertsContainer.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--success); gap: 12px; padding: 24px; margin: auto 0;">
+                <i data-lucide="check-circle" style="width: 40px; height: 40px; color: var(--success);"></i>
+                <div>
+                    <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--success);">All retainers up to date!</h4>
+                    <p class="text-muted small" style="margin: 4px 0 0 0; font-size: 11px;">No pending retainer bills for ${currentMonthName}.</p>
+                </div>
+            </div>
+        `;
+    } else {
+        pendingAlerts.forEach(c => {
+            const alertItem = document.createElement('div');
+            alertItem.className = 'alert-item';
+            alertItem.style.cssText = `
+                background-color: rgba(239, 68, 68, 0.05); 
+                border-left: 4px solid var(--danger); 
+                padding: 10px 12px; 
+                border-radius: var(--border-radius-sm); 
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between; 
+                gap: 8px;
+                border-top: 1px solid rgba(239, 68, 68, 0.08);
+                border-bottom: 1px solid rgba(239, 68, 68, 0.08);
+                border-right: 1px solid rgba(239, 68, 68, 0.08);
+            `;
+            alertItem.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex-grow: 1;">
+                    <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: var(--danger); flex-shrink: 0;"></i>
+                    <span style="font-size: 12px; font-weight: 500; color: #fca5a5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        Retainer billing pending for ${c.name}
+                    </span>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="quickLogBillingForClient('${c.id}')" style="padding: 2px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 4px; border-radius: var(--border-radius-sm);">
+                    <i data-lucide="plus-circle" style="width: 11px; height: 11px;"></i> Log Bill
+                </button>
+            `;
+            alertsContainer.appendChild(alertItem);
+        });
+    }
+
+    safeCreateIcons();
+}
+
+window.quickLogBillingForClient = function(clientId) {
+    openBillingModal();
+    const select = document.getElementById('log-bill-client');
+    select.value = clientId;
+    const event = new Event('change');
+    select.dispatchEvent(event);
+};
 
 function renderChart() {
     if (typeof Chart === 'undefined') {
@@ -1616,7 +1695,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.4");
+    console.log("KK ERP Loaded - v1.1.5");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard

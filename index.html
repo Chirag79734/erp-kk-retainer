@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="styles.css?v=1.1.4">
+    <link rel="stylesheet" href="styles.css?v=1.1.5">
 </head>
 <body>
     <div class="app-container">
@@ -185,33 +185,51 @@
                     </div>
                 </div>
                 
-                <!-- Recent Invoices Table -->
-                <div class="dashboard-card table-card full-width">
-                    <div class="card-header">
-                        <h3>Recent Billing Invoices</h3>
-                        <button class="btn btn-sm btn-outline" onclick="switchTab('billing')">View All Ledger</button>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table" id="recent-invoices-table">
-                                <thead>
-                                    <tr>
-                                        <th>Invoice ID</th>
-                                        <th>Client Name</th>
-                                        <th>Billing Month</th>
-                                        <th>Retainer Fee</th>
-                                        <th>Commission Fee</th>
-                                        <th>Total Billed</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Dynamic rows -->
-                                </tbody>
-                            </table>
+                <!-- Bottom Grid: Alerts & Recent Invoices -->
+                <div style="display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap;">
+                    
+                    <!-- Billing Alerts Card (Left 35%) -->
+                    <div class="dashboard-card" style="flex: 1 1 350px; display: flex; flex-direction: column; margin: 0; padding: 24px;">
+                        <div class="card-header border-bottom" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px;">
+                            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px;">
+                                <i data-lucide="bell" class="text-gold" style="width: 18px; height: 18px;"></i>
+                                Billing Action Alerts
+                            </h3>
+                        </div>
+                        <div class="card-body" id="billing-alerts-container" style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; padding: 0;">
+                            <!-- Dynamic Alerts Rendered Here -->
                         </div>
                     </div>
+
+                    <!-- Recent Invoices Table (Right 65%) -->
+                    <div class="dashboard-card table-card" style="flex: 2 1 600px; display: flex; flex-direction: column; margin: 0; padding: 24px;">
+                        <div class="card-header" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0; font-size: 16px;">Recent Billing Invoices</h3>
+                            <button class="btn btn-sm btn-outline" onclick="switchTab('billing')" style="cursor: pointer;">View All Ledger</button>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="table" id="recent-invoices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Invoice ID</th>
+                                            <th>Client Name</th>
+                                            <th>Billing Month</th>
+                                            <th>Retainer Fee</th>
+                                            <th>Commission Fee</th>
+                                            <th>Total Billed</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             
@@ -846,7 +864,7 @@
     </div>
 
     <!-- Script imports -->
-    <script src="mockData.js?v=1.1.4"></script>
-    <script src="app.js?v=1.1.4"></script>
+    <script src="mockData.js?v=1.1.5"></script>
+    <script src="app.js?v=1.1.5"></script>
 </body>
 </html>
