@@ -1503,6 +1503,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    console.log("KK ERP Loaded - v1.0.7");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
