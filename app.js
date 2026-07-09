@@ -592,9 +592,14 @@ function updateWorkspaceMetrics(clientId) {
 
     const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === fullMonthStr);
 
-    // 2. Total PO (sum of transactions for this client and month containing a PO Number)
-    const totalPoAmount = clientTxs.filter(t => t.poNumber).reduce((sum, t) => sum + t.totalAmount, 0);
-    document.getElementById('ws-kpi-po').textContent = formatCurrency(totalPoAmount);
+    // 2. Total PO (count of unique PO Numbers logged for this client and month)
+    const uniquePOs = new Set(
+        clientTxs
+            .map(t => t.poNumber)
+            .filter(po => po && po.trim() !== "")
+    );
+    const totalPoCount = uniquePOs.size;
+    document.getElementById('ws-kpi-po').textContent = totalPoCount;
 
     // 3. Total Billed (sum of all transactions logged in this month for this client)
     const totalBilled = clientTxs.reduce((sum, t) => sum + t.totalAmount, 0);
@@ -1716,7 +1721,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.12");
+    console.log("KK ERP Loaded - v1.1.13");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
