@@ -270,13 +270,45 @@ function renderClients(filterQuery = '') {
     }
 
     filteredClients.forEach(c => {
-        // Aggregate models
-        const models = c.lobs ? [...new Set(c.lobs.map(lob => lob.billingModel))] : [];
-        const billingModelStr = models.join(' / ') || 'Retainer';
-        
-        let modelBadgeClass = 'badge-success';
-        if (billingModelStr === 'Retainer') modelBadgeClass = 'badge-info';
-        if (billingModelStr === 'Commission') modelBadgeClass = 'badge-warning';
+        let billingModelStr = "";
+        let commissionDetail = "";
+        let modelBadgeClass = "";
+        let isWaiting = false;
+
+        if (c.name === "Airtel") {
+            billingModelStr = "Retainer/Commission";
+            commissionDetail = "Fixed+Variable";
+            modelBadgeClass = "badge-success";
+        } else if (c.name === "ITC Hotels") {
+            billingModelStr = "Retainer";
+            commissionDetail = "Fixed+Variable";
+            modelBadgeClass = "badge-info";
+        } else if (c.name === "Emami" || c.name === "TCPL") {
+            billingModelStr = "waiting for finalized commercial";
+            commissionDetail = "waiting for finalized commercial";
+            isWaiting = true;
+        } else {
+            // Fallback for new clients
+            const models = c.lobs ? [...new Set(c.lobs.map(lob => lob.billingModel))] : [];
+            billingModelStr = models.join(' / ') || 'Retainer';
+            modelBadgeClass = 'badge-success';
+            if (billingModelStr === 'Retainer') modelBadgeClass = 'badge-info';
+            if (billingModelStr === 'Commission') modelBadgeClass = 'badge-warning';
+
+            const commissionParts = [];
+            if (c.lobs) {
+                c.lobs.forEach(lob => {
+                    if (lob.billingModel === 'Commission') {
+                        commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
+                    } else if (lob.billingModel === 'Hybrid') {
+                        commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
+                    } else if (lob.billingModel === 'SplitRetainer' && lob.variableSharePercent > 0) {
+                        commissionParts.push(`${lob.variableSharePercent}% Var (${lob.variableMetric})`);
+                    }
+                });
+            }
+            commissionDetail = commissionParts.length > 0 ? commissionParts.join(' + ') : '-';
+        }
 
         // Calculate total fixed retainer budget portion
         const totalFixedRetainer = c.lobs ? c.lobs.reduce((sum, lob) => {
@@ -287,21 +319,6 @@ function renderClients(filterQuery = '') {
             }
             return sum;
         }, 0) : 0;
-
-        // Aggregate commission details
-        const commissionParts = [];
-        if (c.lobs) {
-            c.lobs.forEach(lob => {
-                if (lob.billingModel === 'Commission') {
-                    commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
-                } else if (lob.billingModel === 'Hybrid') {
-                    commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
-                } else if (lob.billingModel === 'SplitRetainer' && lob.variableSharePercent > 0) {
-                    commissionParts.push(`${lob.variableSharePercent}% Var (${lob.variableMetric})`);
-                }
-            });
-        }
-        const commissionDetail = commissionParts.length > 0 ? commissionParts.join(' + ') : '-';
 
         let statusClass = 'status-active';
         if (c.status === 'Upcoming') statusClass = 'status-upcoming';
@@ -319,9 +336,9 @@ function renderClients(filterQuery = '') {
                 <div class="text-muted small">${c.email}</div>
                 <div class="text-muted small">${c.phone}</div>
             </td>
-            <td><span class="badge ${modelBadgeClass}">${billingModelStr}</span></td>
+            <td>${isWaiting ? `<span class="badge" style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-color); text-transform: none; font-size: 11px;">${billingModelStr}</span>` : `<span class="badge ${modelBadgeClass}">${billingModelStr}</span>`}</td>
             <td><strong>${totalFixedRetainer > 0 ? formatCurrency(totalFixedRetainer) : "₹0"}</strong></td>
-            <td>${commissionDetail}</td>
+            <td>${isWaiting ? `<span class="badge" style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-color); text-transform: none; font-size: 11px;">${commissionDetail}</span>` : commissionDetail}</td>
             <td>
                 <span class="status-indicator ${statusClass}"></span>
                 <span>${c.status}</span>
@@ -1503,7 +1520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.0.7");
+    console.log("KK ERP Loaded - v1.0.8");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
