@@ -484,11 +484,11 @@ function updateWorkspaceMetrics(clientId) {
     if (wsTableBody) {
         wsTableBody.innerHTML = '';
         
-        const filteredWS = transactions.filter(t => t.clientId === clientId && t.billingMonth === fullMonthStr);
+        const filteredWS = transactions.filter(t => t.clientId === clientId);
         filteredWS.sort((a, b) => new Date(b.date) - new Date(a.date));
         
         if (filteredWS.length === 0) {
-            wsTableBody.innerHTML = `<tr><td colspan="9" class="text-muted text-center" style="padding: 32px; text-align: center;">No invoices logged for this client in ${selectedMonth}.</td></tr>`;
+            wsTableBody.innerHTML = `<tr><td colspan="9" class="text-muted text-center" style="padding: 32px; text-align: center;">No invoices logged for this client.</td></tr>`;
         } else {
             filteredWS.forEach(t => {
                 const statusBadgeClass = t.status === 'Paid' ? 'badge-success' : 'badge-warning';
@@ -1606,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.1");
+    console.log("KK ERP Loaded - v1.1.2");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
