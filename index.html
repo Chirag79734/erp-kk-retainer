@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="styles.css?v=1.1.15">
+    <link rel="stylesheet" href="styles.css?v=1.1.16">
 </head>
 <body>
     <div class="app-container">
@@ -339,29 +339,35 @@
                             </div>
                         </div>
                         
-                        <div class="kpi-grid" style="margin-bottom: 24px;">
-                            <div class="kpi-card" style="background-color: rgba(99, 102, 241, 0.04); border-color: rgba(99, 102, 241, 0.15); padding: 18px 24px;">
+                        <div class="kpi-grid" style="margin-bottom: 24px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+                            <div class="kpi-card" style="background-color: rgba(99, 102, 241, 0.04); border-color: rgba(99, 102, 241, 0.15); padding: 16px 20px;">
                                 <div class="kpi-info">
-                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="database" style="width: 14px; height: 14px;"></i> Monthly Retainer</span>
-                                    <h3 class="kpi-val" id="ws-kpi-retainer" style="margin-top: 8px; font-size: 20px;">₹0</h3>
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px; font-size: 11px;"><i data-lucide="database" style="width: 13px; height: 13px;"></i> Monthly Retainer</span>
+                                    <h3 class="kpi-val" id="ws-kpi-retainer" style="margin-top: 6px; font-size: 18px;">₹0</h3>
                                 </div>
                             </div>
-                            <div class="kpi-card" style="background-color: rgba(14, 165, 233, 0.04); border-color: rgba(14, 165, 233, 0.15); padding: 18px 24px;">
+                            <div class="kpi-card" style="background-color: rgba(14, 165, 233, 0.04); border-color: rgba(14, 165, 233, 0.15); padding: 16px 20px;">
                                 <div class="kpi-info">
-                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Total PO</span>
-                                    <h3 class="kpi-val" id="ws-kpi-po" style="margin-top: 8px; font-size: 20px;">0</h3>
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px; font-size: 11px;"><i data-lucide="shield-check" style="width: 13px; height: 13px;"></i> Total Fixed Billed</span>
+                                    <h3 class="kpi-val" id="ws-kpi-fixed-billed" style="margin-top: 6px; font-size: 18px;">₹0</h3>
                                 </div>
                             </div>
-                            <div class="kpi-card" style="background-color: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.15); padding: 18px 24px;">
+                            <div class="kpi-card" style="background-color: rgba(167, 139, 250, 0.04); border-color: rgba(167, 139, 250, 0.15); padding: 16px 20px;">
                                 <div class="kpi-info">
-                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="indian-rupee" style="width: 14px; height: 14px;"></i> Total Billed</span>
-                                    <h3 class="kpi-val" id="ws-kpi-billed" style="margin-top: 8px; font-size: 20px;">₹0</h3>
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px; font-size: 11px;"><i data-lucide="trending-up" style="width: 13px; height: 13px;"></i> Total Variable Billed</span>
+                                    <h3 class="kpi-val" id="ws-kpi-variable-billed" style="margin-top: 6px; font-size: 18px;">₹0</h3>
                                 </div>
                             </div>
-                            <div class="kpi-card" style="background-color: rgba(245, 158, 11, 0.04); border-color: rgba(245, 158, 11, 0.15); padding: 18px 24px;">
+                            <div class="kpi-card" style="background-color: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.15); padding: 16px 20px;">
                                 <div class="kpi-info">
-                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="mail" style="width: 14px; height: 14px;"></i> Collection</span>
-                                    <h3 class="kpi-val" id="ws-kpi-collection" style="margin-top: 8px; font-size: 20px;">₹0</h3>
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px; font-size: 11px;"><i data-lucide="indian-rupee" style="width: 13px; height: 13px;"></i> Total Billed</span>
+                                    <h3 class="kpi-val" id="ws-kpi-billed" style="margin-top: 6px; font-size: 18px;">₹0</h3>
+                                </div>
+                            </div>
+                            <div class="kpi-card" style="background-color: rgba(245, 158, 11, 0.04); border-color: rgba(245, 158, 11, 0.15); padding: 16px 20px;">
+                                <div class="kpi-info">
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px; font-size: 11px;"><i data-lucide="mail" style="width: 13px; height: 13px;"></i> Collection</span>
+                                    <h3 class="kpi-val" id="ws-kpi-collection" style="margin-top: 6px; font-size: 18px;">₹0</h3>
                                 </div>
                             </div>
                         </div>
@@ -392,6 +398,7 @@
                                             <th>Invoice No</th>
                                             <th>Client Name</th>
                                             <th>Month</th>
+                                            <th>Billing Type</th>
                                             <th>Basis Variable Value</th>
                                             <th>Retainer Amount</th>
                                             <th>Commission Amount</th>
@@ -864,7 +871,7 @@
     </div>
 
     <!-- Script imports -->
-    <script src="mockData.js?v=1.1.15"></script>
-    <script src="app.js?v=1.1.15"></script>
+    <script src="mockData.js?v=1.1.16"></script>
+    <script src="app.js?v=1.1.16"></script>
 </body>
 </html>

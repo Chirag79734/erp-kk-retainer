@@ -593,24 +593,23 @@ function updateWorkspaceMetrics(clientId) {
     // Calculate metrics cumulatively starting from April 2026 onwards (FY 2026-27)
     const clientTxs = transactions.filter(t => t.clientId === clientId && t.date >= "2026-04-01");
 
-    // 2. Total PO (count of unique PO Numbers logged for this client from Apr 2026 onwards)
-    const uniquePOs = new Set(
-        clientTxs
-            .map(t => t.poNumber)
-            .filter(po => po && po.trim() !== "")
-    );
-    const totalPoCount = uniquePOs.size;
-    document.getElementById('ws-kpi-po').textContent = totalPoCount;
+    // 2. Total Fixed Billed (sum of all fixed retainer amounts logged from Apr 2026 onwards)
+    const totalFixedBilled = clientTxs.reduce((sum, t) => sum + (t.retainerAmount || 0), 0);
+    document.getElementById('ws-kpi-fixed-billed').textContent = formatCurrency(totalFixedBilled);
 
-    // 3. Total Billed (sum of all transactions logged from Apr 2026 onwards for this client)
+    // 3. Total Variable Billed (sum of all variable/commission amounts logged from Apr 2026 onwards)
+    const totalVariableBilled = clientTxs.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
+    document.getElementById('ws-kpi-variable-billed').textContent = formatCurrency(totalVariableBilled);
+
+    // 4. Total Billed (sum of all transactions logged from Apr 2026 onwards for this client)
     const totalBilled = clientTxs.reduce((sum, t) => sum + t.totalAmount, 0);
     document.getElementById('ws-kpi-billed').textContent = formatCurrency(totalBilled);
 
-    // 4. Collection (sum of all paid transactions logged from Apr 2026 onwards for this client)
+    // 5. Collection (sum of all paid transactions logged from Apr 2026 onwards for this client)
     const collection = clientTxs.filter(t => t.status === 'Paid').reduce((sum, t) => sum + t.totalAmount, 0);
     document.getElementById('ws-kpi-collection').textContent = formatCurrency(collection);
 
-    // 5. Progress Calculation (cumulative total billed versus single month retainer budget benchmark)
+    // 6. Progress Calculation (cumulative total billed versus single month retainer budget benchmark)
     const progressPercent = monthlyRetainer > 0 ? Math.min(100, Math.round((totalBilled / monthlyRetainer) * 100)) : 0;
     document.getElementById('ws-progress-text').textContent = `${progressPercent}%`;
     document.getElementById('ws-progress-bar').style.width = `${progressPercent}%`;
@@ -624,7 +623,7 @@ function updateWorkspaceMetrics(clientId) {
         filteredWS.sort((a, b) => new Date(b.date) - new Date(a.date));
         
         if (filteredWS.length === 0) {
-            wsTableBody.innerHTML = `<tr><td colspan="9" class="text-muted text-center" style="padding: 32px; text-align: center;">No invoices logged for this client.</td></tr>`;
+            wsTableBody.innerHTML = `<tr><td colspan="10" class="text-muted text-center" style="padding: 32px; text-align: center;">No invoices logged for this client.</td></tr>`;
         } else {
             filteredWS.forEach(t => {
                 const statusBadgeClass = t.status === 'Paid' ? 'badge-success' : 'badge-warning';
@@ -633,12 +632,27 @@ function updateWorkspaceMetrics(clientId) {
                 if (t.variableBaseAmount > 0) {
                     basisValDesc = `${formatCurrency(t.variableBaseAmount)}`;
                 }
+
+                // Dynamically fetch billing type
+                let billingTypeDesc = "-";
+                if (t.billingType) {
+                    billingTypeDesc = t.billingType;
+                } else {
+                    if (t.retainerAmount > 0 && t.commissionAmount > 0) {
+                        billingTypeDesc = "Hybrid";
+                    } else if (t.retainerAmount > 0) {
+                        billingTypeDesc = "Fixed";
+                    } else if (t.commissionAmount > 0) {
+                        billingTypeDesc = "Commission";
+                    }
+                }
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong>${t.poNumber ? `<div class="text-muted small" style="font-size: 11px; margin-top: 2px;">PO: ${t.poNumber}</div>` : ''}</td>
                     <td>${t.clientName}${t.lobName ? ` <span class="text-muted small">(${t.lobName})</span>` : ''}</td>
                     <td>${t.billingMonth}</td>
+                    <td><span style="font-weight: 500; color: var(--text-secondary);">${billingTypeDesc}</span></td>
                     <td>${basisValDesc}</td>
                     <td>${formatCurrency(t.retainerAmount)}</td>
                     <td>${formatCurrency(t.commissionAmount)}</td>
@@ -1730,7 +1744,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.15");
+    console.log("KK ERP Loaded - v1.1.16");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
