@@ -526,12 +526,17 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
     e.preventDefault();
     
     const id = document.getElementById('client-id-field').value;
-    const name = document.getElementById('client-name').value;
-    const contactName = document.getElementById('client-contact').value;
+    const name = document.getElementById('client-name').value.trim();
+    const contactName = document.getElementById('client-contact').value.trim();
     const status = document.getElementById('client-status').value;
-    const email = document.getElementById('client-email').value;
-    const phone = document.getElementById('client-phone').value;
+    const email = document.getElementById('client-email').value.trim();
+    const phone = document.getElementById('client-phone').value.trim();
     const billingModel = document.getElementById('client-model').value;
+    
+    if (!name) {
+        alert("Company Name is required.");
+        return;
+    }
     
     let billingFields = {};
     if (billingModel) {
@@ -1545,7 +1550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.0.9");
+    console.log("KK ERP Loaded - v1.1.0");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
