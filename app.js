@@ -189,7 +189,7 @@ function renderDashboard() {
             const statusBadgeClass = t.status === 'Paid' ? 'badge-success' : 'badge-warning';
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td><strong>#${t.id.toUpperCase()}</strong></td>
+                <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong></td>
                 <td>${t.clientName}${t.lobName ? ` <span class="text-muted small">(${t.lobName})</span>` : ''}</td>
                 <td>${t.billingMonth}</td>
                 <td>${formatCurrency(t.retainerAmount)}</td>
@@ -1721,7 +1721,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.13");
+    console.log("KK ERP Loaded - v1.1.14");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
