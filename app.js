@@ -1222,27 +1222,28 @@ function runLogBillCalculation() {
     let kpiVal = parseFloat(document.getElementById('log-bill-kpi-value').value) || 0;
     if (kpiVal < 0) kpiVal = 0;
     if (kpiVal > 100) kpiVal = 100;
-
     if (lob.billingModel === 'SplitRetainer') {
         const billType = document.getElementById('log-bill-type').value;
         if (billType === 'Fixed') {
-            retainerAmt = lob.fixedAmount !== undefined ? lob.fixedAmount : lob.totalRetainer * (lob.fixedSharePercent / 100);
+            retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
             commissionAmt = 0;
         } else if (billType === 'Variable') {
             retainerAmt = 0;
             const maxVarAmt = lob.variableAmount !== undefined ? lob.variableAmount : lob.totalRetainer * (lob.variableSharePercent / 100);
             commissionAmt = maxVarAmt * (kpiVal / 100);
         }
-    } else if (lob.billingModel === 'Retainer') {
-        retainerAmt = lob.totalRetainer;
-        commissionAmt = 0;
-    } else if (lob.billingModel === 'Hybrid') {
-        retainerAmt = lob.totalRetainer;
-        commissionAmt = baseVal * (lob.commissionPercent / 100);
-    } else if (lob.billingModel === 'Commission') {
-        retainerAmt = 0;
-        commissionAmt = baseVal * (lob.commissionPercent / 100);
-    }
+    } else {
+        if (lob.billingModel === 'Retainer') {
+            retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
+            commissionAmt = 0;
+        } else if (lob.billingModel === 'Hybrid') {
+            retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
+            commissionAmt = baseVal * (lob.commissionPercent / 100);
+        } else if (lob.billingModel === 'Commission') {
+            retainerAmt = 0;
+            commissionAmt = baseVal * (lob.commissionPercent / 100);
+        }
+    }  
 
     const total = retainerAmt + commissionAmt;
 
@@ -1253,6 +1254,7 @@ function runLogBillCalculation() {
 }
 
 // Live calculation triggers on Log Bill inputs
+document.getElementById('log-bill-fixed-value').addEventListener('input', runLogBillCalculation);
 document.getElementById('log-bill-variable-value').addEventListener('input', runLogBillCalculation);
 document.getElementById('log-bill-kpi-value').addEventListener('input', runLogBillCalculation);
 
@@ -1288,7 +1290,7 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
 
     if (lob.billingModel === 'SplitRetainer') {
         if (billType === 'Fixed') {
-            retainerAmt = lob.fixedAmount !== undefined ? lob.fixedAmount : lob.totalRetainer * (lob.fixedSharePercent / 100);
+            retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
             commissionAmt = 0;
         } else if (billType === 'Variable') {
             retainerAmt = 0;
@@ -1296,10 +1298,10 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
             commissionAmt = maxVarAmt * (kpiVal / 100);
         }
     } else if (lob.billingModel === 'Retainer') {
-        retainerAmt = lob.totalRetainer;
+        retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
         commissionAmt = 0;
     } else if (lob.billingModel === 'Hybrid') {
-        retainerAmt = lob.totalRetainer;
+        retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
         commissionAmt = baseVal * (lob.commissionPercent / 100);
     } else if (lob.billingModel === 'Commission') {
         retainerAmt = 0;
@@ -1724,7 +1726,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.10");
+    console.log("KK ERP Loaded - v1.1.11");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard

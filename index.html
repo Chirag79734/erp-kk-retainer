@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="styles.css?v=1.1.10">
+    <link rel="stylesheet" href="styles.css?v=1.1.11">
 </head>
 <body>
     <div class="app-container">
@@ -828,9 +828,9 @@
                     <label for="log-bill-fixed-value">Fixed Retainer Fee (INR)</label>
                     <div class="input-with-icon">
                         <span class="currency-symbol">₹</span>
-                        <input type="text" id="log-bill-fixed-value" class="form-control" readonly style="opacity: 0.85; background-color: rgba(255,255,255,0.03); cursor: not-allowed;">
+                        <input type="number" id="log-bill-fixed-value" class="form-control" placeholder="0">
                     </div>
-                    <span class="helper-text text-muted">Locked fixed retainer portion.</span>
+                    <span class="helper-text text-muted">Fixed retainer portion (editable).</span>
                 </div>
 
                 <div class="form-group" id="log-bill-kpi-group" style="display: none;">
@@ -864,7 +864,7 @@
     </div>
 
     <!-- Script imports -->
-    <script src="mockData.js?v=1.1.10"></script>
-    <script src="app.js?v=1.1.10"></script>
+    <script src="mockData.js?v=1.1.11"></script>
+    <script src="app.js?v=1.1.11"></script>
 </body>
 </html>
