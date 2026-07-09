@@ -1344,8 +1344,15 @@ document.getElementById('calc-client').addEventListener('change', (e) => {
 
     document.getElementById('calc-preview-model').textContent = lob.billingModel;
     document.getElementById('calc-preview-retainer').textContent = formatCurrency(lob.totalRetainer);
-    document.getElementById('calc-preview-commission-rate').textContent = lob.billingModel !== 'Retainer' ? `${lob.commissionPercent}%` : '0%';
-    document.getElementById('calc-preview-base').textContent = lob.commissionBase || 'None';
+    
+    let commRateText = '0%';
+    if (lob.commissionPercent !== undefined) {
+        commRateText = `${lob.commissionPercent}%`;
+    } else if (lob.variableSharePercent !== undefined) {
+        commRateText = `${lob.variableSharePercent}% (Var)`;
+    }
+    document.getElementById('calc-preview-commission-rate').textContent = commRateText;
+    document.getElementById('calc-preview-base').textContent = lob.commissionBase || lob.variableMetric || 'None';
 
     // Show input fields if dynamic commission model
     const inputSection = document.getElementById('calc-inputs-section');
@@ -1668,7 +1675,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.8");
+    console.log("KK ERP Loaded - v1.1.9");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
