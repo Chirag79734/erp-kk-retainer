@@ -11,14 +11,28 @@ const initialClients = [
         startDate: "2026-01-01",
         lobs: [
             {
-                name: "Performance",
+                name: "Broadband",
                 billingModel: "SplitRetainer",
-                totalRetainer: 2200000,
+                totalRetainer: 1000000,
                 fixedSharePercent: 85,
                 variableSharePercent: 15,
-                fixedAmount: 1870000,
-                variableAmount: 330000,
-                variableMetric: "Ad Spend"
+                variableMetric: "KPIs"
+            },
+            {
+                name: "Mobility",
+                billingModel: "SplitRetainer",
+                totalRetainer: 1000000,
+                fixedSharePercent: 85,
+                variableSharePercent: 15,
+                variableMetric: "KPIs"
+            },
+            {
+                name: "Finance",
+                billingModel: "SplitRetainer",
+                totalRetainer: 200000,
+                fixedSharePercent: 85,
+                variableSharePercent: 15,
+                variableMetric: "KPIs"
             },
             {
                 name: "Branding",
@@ -141,18 +155,50 @@ const initialClients = [
 
 const initialTransactions = [
     {
-        id: "t1",
+        id: "t1a",
         clientId: "c1",
         clientName: "Airtel",
-        lobName: "Performance",
-        invoiceNumber: "INV/2026/001",
+        lobName: "Broadband",
+        invoiceNumber: "INV/2026/001-A",
         date: "2026-06-30",
         billingMonth: "June 2026",
-        retainerAmount: 1870000, // 85% of 22 Lakhs
-        commissionAmount: 330000, // 100% of 15% variable portion
+        retainerAmount: 850000,
+        commissionAmount: 150000,
         variableBaseAmount: 0,
         kpiAchievement: 100,
-        totalAmount: 2200000,
+        totalAmount: 1000000,
+        status: "Paid",
+        dueDate: "2026-07-10"
+    },
+    {
+        id: "t1b",
+        clientId: "c1",
+        clientName: "Airtel",
+        lobName: "Mobility",
+        invoiceNumber: "INV/2026/001-B",
+        date: "2026-06-30",
+        billingMonth: "June 2026",
+        retainerAmount: 850000,
+        commissionAmount: 150000,
+        variableBaseAmount: 0,
+        kpiAchievement: 100,
+        totalAmount: 1000000,
+        status: "Paid",
+        dueDate: "2026-07-10"
+    },
+    {
+        id: "t1c",
+        clientId: "c1",
+        clientName: "Airtel",
+        lobName: "Finance",
+        invoiceNumber: "INV/2026/001-C",
+        date: "2026-06-30",
+        billingMonth: "June 2026",
+        retainerAmount: 170000,
+        commissionAmount: 30000,
+        variableBaseAmount: 0,
+        kpiAchievement: 100,
+        totalAmount: 200000,
         status: "Paid",
         dueDate: "2026-07-10"
     },
@@ -173,18 +219,50 @@ const initialTransactions = [
         dueDate: "2026-07-15"
     },
     {
-        id: "t3",
+        id: "t3a",
         clientId: "c1",
         clientName: "Airtel",
-        lobName: "Performance",
-        invoiceNumber: "INV/2026/003",
+        lobName: "Broadband",
+        invoiceNumber: "INV/2026/003-A",
         date: "2026-05-31",
         billingMonth: "May 2026",
-        retainerAmount: 1870000,
-        commissionAmount: 264000, // 80% of 15% variable portion (80% of 330,000)
+        retainerAmount: 850000,
+        commissionAmount: 120000,
         variableBaseAmount: 0,
         kpiAchievement: 80,
-        totalAmount: 2134000,
+        totalAmount: 970000,
+        status: "Paid",
+        dueDate: "2026-06-10"
+    },
+    {
+        id: "t3b",
+        clientId: "c1",
+        clientName: "Airtel",
+        lobName: "Mobility",
+        invoiceNumber: "INV/2026/003-B",
+        date: "2026-05-31",
+        billingMonth: "May 2026",
+        retainerAmount: 850000,
+        commissionAmount: 120000,
+        variableBaseAmount: 0,
+        kpiAchievement: 80,
+        totalAmount: 970000,
+        status: "Paid",
+        dueDate: "2026-06-10"
+    },
+    {
+        id: "t3c",
+        clientId: "c1",
+        clientName: "Airtel",
+        lobName: "Finance",
+        invoiceNumber: "INV/2026/003-C",
+        date: "2026-05-31",
+        billingMonth: "May 2026",
+        retainerAmount: 170000,
+        commissionAmount: 24000,
+        variableBaseAmount: 0,
+        kpiAchievement: 80,
+        totalAmount: 194000,
         status: "Paid",
         dueDate: "2026-06-10"
     }

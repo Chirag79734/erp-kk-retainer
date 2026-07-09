@@ -13,9 +13,58 @@ function initData() {
     
     // Transactions are user-generated ledger items, load from localStorage
     transactions = JSON.parse(localStorage.getItem("erp_transactions")) || initialTransactions;
-    if (!localStorage.getItem("erp_transactions")) {
-        localStorage.setItem("erp_transactions", JSON.stringify(initialTransactions));
+    
+    // Migrate any existing legacy Airtel "Performance" entries to the new Broadband, Mobility, and Finance BUs
+    let migrated = false;
+    const newTxs = [];
+    transactions.forEach(t => {
+        if (t.clientId === 'c1' && t.lobName === 'Performance') {
+            migrated = true;
+            const kpiVal = t.kpiAchievement !== undefined ? t.kpiAchievement : 100;
+            const scoreFactor = kpiVal / 100;
+
+            // Broadband (1,000,000 retainer, 85% fixed, 15% variable)
+            newTxs.push({
+                ...t,
+                id: t.id + '_a',
+                lobName: 'Broadband',
+                invoiceNumber: t.invoiceNumber + '-A',
+                retainerAmount: 850000,
+                commissionAmount: 150000 * scoreFactor,
+                totalAmount: 850000 + (150000 * scoreFactor)
+            });
+
+            // Mobility (1,000,000 retainer, 85% fixed, 15% variable)
+            newTxs.push({
+                ...t,
+                id: t.id + '_b',
+                lobName: 'Mobility',
+                invoiceNumber: t.invoiceNumber + '-B',
+                retainerAmount: 850000,
+                commissionAmount: 150000 * scoreFactor,
+                totalAmount: 850000 + (150000 * scoreFactor)
+            });
+
+            // Finance (200,000 retainer, 85% fixed, 15% variable)
+            newTxs.push({
+                ...t,
+                id: t.id + '_c',
+                lobName: 'Finance',
+                invoiceNumber: t.invoiceNumber + '-C',
+                retainerAmount: 170000,
+                commissionAmount: 30000 * scoreFactor,
+                totalAmount: 170000 + (30000 * scoreFactor)
+            });
+        } else {
+            newTxs.push(t);
+        }
+    });
+
+    if (migrated) {
+        transactions = newTxs;
     }
+    
+    localStorage.setItem("erp_transactions", JSON.stringify(transactions));
 }
 
 function saveData() {
@@ -1675,7 +1724,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.9");
+    console.log("KK ERP Loaded - v1.1.10");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
