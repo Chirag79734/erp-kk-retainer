@@ -270,14 +270,38 @@ function renderClients(filterQuery = '') {
     }
 
     filteredClients.forEach(c => {
+        // Aggregate models
+        const models = c.lobs ? [...new Set(c.lobs.map(lob => lob.billingModel))] : [];
+        const billingModelStr = models.join(' / ') || 'Retainer';
+        
         let modelBadgeClass = 'badge-success';
-        if (c.billingModel === 'Retainer') modelBadgeClass = 'badge-info';
-        if (c.billingModel === 'Commission') modelBadgeClass = 'badge-warning';
+        if (billingModelStr === 'Retainer') modelBadgeClass = 'badge-info';
+        if (billingModelStr === 'Commission') modelBadgeClass = 'badge-warning';
 
-        let commissionDetail = "-";
-        if (c.billingModel !== 'Retainer') {
-            commissionDetail = `${c.commissionPercent}% on ${c.commissionBase}`;
+        // Calculate total fixed retainer budget portion
+        const totalFixedRetainer = c.lobs ? c.lobs.reduce((sum, lob) => {
+            if (lob.billingModel === 'SplitRetainer') {
+                return sum + (lob.fixedAmount !== undefined ? lob.fixedAmount : (lob.totalRetainer * (lob.fixedSharePercent / 100)));
+            } else if (lob.billingModel === 'Retainer') {
+                return sum + (lob.totalRetainer || 0);
+            }
+            return sum;
+        }, 0) : 0;
+
+        // Aggregate commission details
+        const commissionParts = [];
+        if (c.lobs) {
+            c.lobs.forEach(lob => {
+                if (lob.billingModel === 'Commission') {
+                    commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
+                } else if (lob.billingModel === 'Hybrid') {
+                    commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
+                } else if (lob.billingModel === 'SplitRetainer' && lob.variableSharePercent > 0) {
+                    commissionParts.push(`${lob.variableSharePercent}% Var (${lob.variableMetric})`);
+                }
+            });
         }
+        const commissionDetail = commissionParts.length > 0 ? commissionParts.join(' + ') : '-';
 
         let statusClass = 'status-active';
         if (c.status === 'Upcoming') statusClass = 'status-upcoming';
@@ -295,8 +319,8 @@ function renderClients(filterQuery = '') {
                 <div class="text-muted small">${c.email}</div>
                 <div class="text-muted small">${c.phone}</div>
             </td>
-            <td><span class="badge ${modelBadgeClass}">${c.billingModel}</span></td>
-            <td><strong>${c.retainerRate > 0 ? formatCurrency(c.retainerRate) : "₹0"}</strong></td>
+            <td><span class="badge ${modelBadgeClass}">${billingModelStr}</span></td>
+            <td><strong>${totalFixedRetainer > 0 ? formatCurrency(totalFixedRetainer) : "₹0"}</strong></td>
             <td>${commissionDetail}</td>
             <td>
                 <span class="status-indicator ${statusClass}"></span>
