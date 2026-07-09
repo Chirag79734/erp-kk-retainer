@@ -28,6 +28,7 @@ function initData() {
                 ...t,
                 id: t.id + '_a',
                 lobName: 'Broadband',
+                brandName: 'Bharti Airtel Limited',
                 invoiceNumber: t.invoiceNumber + '-A',
                 retainerAmount: 850000,
                 commissionAmount: 150000 * scoreFactor,
@@ -39,6 +40,7 @@ function initData() {
                 ...t,
                 id: t.id + '_b',
                 lobName: 'Mobility',
+                brandName: 'Bharti Airtel Limited',
                 invoiceNumber: t.invoiceNumber + '-B',
                 retainerAmount: 850000,
                 commissionAmount: 150000 * scoreFactor,
@@ -50,6 +52,7 @@ function initData() {
                 ...t,
                 id: t.id + '_c',
                 lobName: 'Finance',
+                brandName: 'Xtelify Limited',
                 invoiceNumber: t.invoiceNumber + '-C',
                 retainerAmount: 170000,
                 commissionAmount: 30000 * scoreFactor,
@@ -1017,6 +1020,56 @@ function hideLogBillGroups() {
     document.getElementById('log-bill-fixed-group').style.display = 'none';
     document.getElementById('log-bill-kpi-group').style.display = 'none';
     document.getElementById('log-bill-summary-box').style.display = 'none';
+    document.getElementById('log-bill-brand-group').style.display = 'none';
+}
+
+// Handle Brand Name Field based on selected client & LOB
+function updateBrandNameField(client, lobName) {
+    const brandGroup = document.getElementById('log-bill-brand-group');
+    const brandContainer = document.getElementById('log-bill-brand-container');
+    if (!brandGroup || !brandContainer) return;
+
+    if (!client) {
+        brandGroup.style.display = 'none';
+        brandContainer.innerHTML = `<input type="text" id="log-bill-brand-name" class="form-control" readonly value="">`;
+        return;
+    }
+
+    // 1. If selected client is Airtel (id: "c1")
+    if (client.id === 'c1') {
+        brandGroup.style.display = 'block';
+        if (lobName === 'Branding') {
+            // Dropdown select
+            brandContainer.innerHTML = `
+                <select id="log-bill-brand-name-select" class="form-control">
+                    <option value="Bharti Airtel Limited">Bharti Airtel Limited</option>
+                    <option value="Xtelify Limited">Xtelify Limited</option>
+                    <option value="APB">APB</option>
+                </select>
+            `;
+        } else {
+            // Readonly input field with values based on BU
+            let brandVal = "";
+            if (lobName === 'Mobility' || lobName === 'Broadband') {
+                brandVal = "Bharti Airtel Limited";
+            } else if (lobName === 'Finance' || lobName === 'Airtel Thanks' || lobName === 'Airtel Xstream') {
+                brandVal = "Xtelify Limited";
+            } else if (lobName === 'Airtel Payment Bank') {
+                brandVal = "APB";
+            }
+            brandContainer.innerHTML = `<input type="text" id="log-bill-brand-name" class="form-control" readonly value="${brandVal}">`;
+        }
+    } 
+    // 2. If selected client is ITC Hotels (id: "c2")
+    else if (client.id === 'c2') {
+        brandGroup.style.display = 'block';
+        brandContainer.innerHTML = `<input type="text" id="log-bill-brand-name" class="form-control" readonly value="ITC Hotel Limited">`;
+    } 
+    // 3. Other clients
+    else {
+        brandGroup.style.display = 'none';
+        brandContainer.innerHTML = `<input type="text" id="log-bill-brand-name" class="form-control" readonly value="">`;
+    }
 }
 
 // Handle Client Select on Log Bill form
@@ -1033,6 +1086,7 @@ document.getElementById('log-bill-client').addEventListener('change', (e) => {
         submitBtn.disabled = false;
         lobSelect.disabled = false;
         hideLogBillGroups();
+        updateBrandNameField(null, "");
         return;
     }
 
@@ -1045,6 +1099,7 @@ document.getElementById('log-bill-client').addEventListener('change', (e) => {
         submitBtn.disabled = true;
         lobSelect.disabled = true;
         hideLogBillGroups();
+        updateBrandNameField(null, "");
         return;
     } else {
         alertBox.style.display = 'none';
@@ -1068,6 +1123,7 @@ document.getElementById('log-bill-client').addEventListener('change', (e) => {
         triggerLogBillLobChange(client, client.lobs[0]);
     } else {
         hideLogBillGroups();
+        updateBrandNameField(client, "");
     }
 });
 
@@ -1080,6 +1136,7 @@ document.getElementById('log-bill-lob').addEventListener('change', (e) => {
     const lobName = e.target.value;
     if (!lobName) {
         hideLogBillGroups();
+        updateBrandNameField(client, "");
         return;
     }
 
@@ -1091,6 +1148,7 @@ document.getElementById('log-bill-lob').addEventListener('change', (e) => {
 
 function triggerLogBillLobChange(client, lob) {
     hideLogBillGroups();
+    updateBrandNameField(client, lob.name);
 
     // Show Terms Badge
     const termsBox = document.getElementById('log-bill-terms-info');
@@ -1324,11 +1382,21 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
 
     const total = retainerAmt + commissionAmt;
 
+    let brandNameVal = "";
+    const brandNameInput = document.getElementById('log-bill-brand-name');
+    const brandNameSelect = document.getElementById('log-bill-brand-name-select');
+    if (brandNameSelect) {
+        brandNameVal = brandNameSelect.value;
+    } else if (brandNameInput) {
+        brandNameVal = brandNameInput.value;
+    }
+
     const newTx = {
         id: generateId('t'),
         clientId: client.id,
         clientName: client.name,
         lobName: lob.name,
+        brandName: brandNameVal,
         billingType: billType,
         invoiceNumber: invoiceNum,
         poNumber: poNum,
@@ -1663,6 +1731,18 @@ window.viewInvoice = function(transactionId) {
 
     document.getElementById('inv-id').textContent = tx.invoiceNumber ? tx.invoiceNumber : tx.id.toUpperCase();
     document.getElementById('inv-po-no').textContent = tx.poNumber ? tx.poNumber : '-';
+
+    const brandMeta = document.getElementById('inv-brand-name-meta');
+    const brandValEl = document.getElementById('inv-brand-name');
+    if (brandMeta && brandValEl) {
+        if (tx.brandName) {
+            brandMeta.style.display = 'flex';
+            brandValEl.textContent = tx.brandName;
+        } else {
+            brandMeta.style.display = 'none';
+        }
+    }
+
     document.getElementById('inv-date').textContent = formatDate(tx.date);
     document.getElementById('inv-client-name').textContent = tx.lobName ? `${tx.clientName} (${tx.lobName})` : tx.clientName;
     document.getElementById('inv-client-contact').textContent = client.contactName;
@@ -1744,7 +1824,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.16");
+    console.log("KK ERP Loaded - v1.1.17");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
