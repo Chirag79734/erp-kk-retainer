@@ -66,6 +66,27 @@ function initData() {
     if (migrated) {
         transactions = newTxs;
     }
+
+    // Ensure all existing transactions have a brandName populated based on their client & LOB
+    let updatedBrandNames = false;
+    transactions.forEach(t => {
+        if (!t.brandName) {
+            updatedBrandNames = true;
+            if (t.clientId === 'c1') {
+                if (t.lobName === 'Mobility' || t.lobName === 'Broadband') {
+                    t.brandName = "Bharti Airtel Limited";
+                } else if (t.lobName === 'Finance' || t.lobName === 'Airtel Thanks' || t.lobName === 'Airtel Xstream') {
+                    t.brandName = "Xtelify Limited";
+                } else if (t.lobName === 'Airtel Payment Bank') {
+                    t.brandName = "APB";
+                } else {
+                    t.brandName = "Bharti Airtel Limited";
+                }
+            } else if (t.clientId === 'c2') {
+                t.brandName = "ITC Hotel Limited";
+            }
+        }
+    });
     
     localStorage.setItem("erp_transactions", JSON.stringify(transactions));
 }
@@ -1824,7 +1845,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.17");
+    console.log("KK ERP Loaded - v1.1.18");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
