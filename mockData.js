@@ -215,7 +215,7 @@ const initialTransactions = [
         variableBaseAmount: 0,
         kpiAchievement: 100,
         totalAmount: 560000,
-        status: "Pending",
+        status: "Billing Initiated",
         dueDate: "2026-07-15"
     },
     {

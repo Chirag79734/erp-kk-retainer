@@ -167,7 +167,7 @@ function renderDashboard() {
         totalBilling += t.totalAmount;
         totalRetainers += t.retainerAmount;
         totalCommissions += t.commissionAmount;
-        if (t.status === 'Pending') {
+        if (t.status === 'Billing Initiated' || t.status === 'Pending') {
             outstandingBilling += t.totalAmount;
         }
     });
@@ -643,11 +643,6 @@ function updateWorkspaceMetrics(clientId) {
                             <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${t.id}')" style="padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
                                 <i data-lucide="eye" style="width: 12px; height: 12px;"></i> View
                             </button>
-                            ${t.status === 'Pending' ? `
-                                <button class="btn btn-sm btn-primary" onclick="markAsPaidWS('${t.id}')" style="background-color: var(--success); border-color: var(--success); padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; color: white;">
-                                    <i data-lucide="check" style="width: 12px; height: 12px;"></i> Pay
-                                </button>
-                            ` : ''}
                         </div>
                     </td>
                 `;
@@ -869,15 +864,10 @@ function renderBillingLedger() {
             <td><span class="badge ${statusBadgeClass}">${t.status}</span></td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${t.id}')">
+                    <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${t.id}')" style="cursor: pointer;">
                         <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
                     </button>
-                    ${t.status === 'Pending' ? `
-                        <button class="btn btn-sm btn-primary" onclick="markAsPaid('${t.id}')" style="background-color: var(--success);">
-                            <i data-lucide="check" style="width: 14px; height: 14px;"></i> Pay
-                        </button>
-                    ` : ''}
-                    <button class="btn-icon delete" onclick="deleteTransaction('${t.id}')" title="Delete record">
+                    <button class="btn-icon delete" onclick="deleteTransaction('${t.id}')" title="Delete record" style="cursor: pointer;">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -1325,7 +1315,7 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
         variableBaseAmount: baseVal,
         kpiAchievement: lob.billingModel === 'SplitRetainer' && billType === 'Variable' ? kpiVal : null,
         totalAmount: total,
-        status: "Pending", // Set as pending for new records
+        status: "Billing Initiated", // Set as initiated for new records
         dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 10 days due
     };
 
@@ -1726,7 +1716,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.11");
+    console.log("KK ERP Loaded - v1.1.12");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
