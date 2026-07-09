@@ -590,9 +590,10 @@ function updateWorkspaceMetrics(clientId) {
     const monthlyRetainer = client.lobs ? client.lobs.reduce((sum, lob) => sum + (lob.totalRetainer || 0), 0) : 0;
     document.getElementById('ws-kpi-retainer').textContent = formatCurrency(monthlyRetainer);
 
-    const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === fullMonthStr);
+    // Calculate metrics cumulatively starting from April 2026 onwards (FY 2026-27)
+    const clientTxs = transactions.filter(t => t.clientId === clientId && t.date >= "2026-04-01");
 
-    // 2. Total PO (count of unique PO Numbers logged for this client and month)
+    // 2. Total PO (count of unique PO Numbers logged for this client from Apr 2026 onwards)
     const uniquePOs = new Set(
         clientTxs
             .map(t => t.poNumber)
@@ -601,15 +602,15 @@ function updateWorkspaceMetrics(clientId) {
     const totalPoCount = uniquePOs.size;
     document.getElementById('ws-kpi-po').textContent = totalPoCount;
 
-    // 3. Total Billed (sum of all transactions logged in this month for this client)
+    // 3. Total Billed (sum of all transactions logged from Apr 2026 onwards for this client)
     const totalBilled = clientTxs.reduce((sum, t) => sum + t.totalAmount, 0);
     document.getElementById('ws-kpi-billed').textContent = formatCurrency(totalBilled);
 
-    // 4. Collection (sum of all paid transactions logged in this month for this client)
+    // 4. Collection (sum of all paid transactions logged from Apr 2026 onwards for this client)
     const collection = clientTxs.filter(t => t.status === 'Paid').reduce((sum, t) => sum + t.totalAmount, 0);
     document.getElementById('ws-kpi-collection').textContent = formatCurrency(collection);
 
-    // 5. Progress Calculation
+    // 5. Progress Calculation (cumulative total billed versus single month retainer budget benchmark)
     const progressPercent = monthlyRetainer > 0 ? Math.min(100, Math.round((totalBilled / monthlyRetainer) * 100)) : 0;
     document.getElementById('ws-progress-text').textContent = `${progressPercent}%`;
     document.getElementById('ws-progress-bar').style.width = `${progressPercent}%`;
@@ -1266,6 +1267,10 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
     if (!lob) return;
 
     const rawMonth = document.getElementById('log-bill-month').value; // e.g. "2026-07"
+    if (rawMonth < "2026-04") {
+        alert("Billing entries can only be logged for FY 2026-27 onwards (starting April 2026).");
+        return;
+    }
     const dateObj = new Date(rawMonth + "-01");
     const formattedMonth = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }); // e.g. "July 2026"
 
@@ -1437,6 +1442,10 @@ document.getElementById('btn-calc-calculate').addEventListener('click', () => {
     const rawMonth = document.getElementById('calc-billing-month').value;
     if (!rawMonth) {
         alert("Please select a billing month.");
+        return;
+    }
+    if (rawMonth < "2026-04") {
+        alert("Calculations can only be performed for FY 2026-27 onwards (starting April 2026).");
         return;
     }
     const dateObj = new Date(rawMonth + "-01");
@@ -1721,7 +1730,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.14");
+    console.log("KK ERP Loaded - v1.1.15");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
