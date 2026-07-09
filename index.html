@@ -217,35 +217,145 @@
             
             <!-- VIEW: Clients Directory -->
             <div id="view-clients" class="view-panel">
-                <div class="panel-actions">
-                    <div class="search-bar-container">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" id="search-clients" placeholder="Search clients by name, contact, billing model..." class="search-input">
+                <div id="clients-list-subpanel">
+                    <div class="panel-actions">
+                        <div class="search-bar-container">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="search-clients" placeholder="Search clients by name, contact, billing model..." class="search-input">
+                        </div>
+                        <button class="btn btn-primary" id="btn-add-client">
+                            <i data-lucide="user-plus"></i> Add New Client
+                        </button>
                     </div>
-                    <button class="btn btn-primary" id="btn-add-client">
-                        <i data-lucide="user-plus"></i> Add New Client
-                    </button>
+                    
+                    <div class="dashboard-card full-width">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table" id="clients-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Client Name</th>
+                                            <th>Primary Contact</th>
+                                            <th>Billing Model</th>
+                                            <th>Fixed Retainer</th>
+                                            <th>Commission Setup</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Dynamic content -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="dashboard-card full-width">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table" id="clients-table">
-                                <thead>
-                                    <tr>
-                                        <th>Client Name</th>
-                                        <th>Primary Contact</th>
-                                        <th>Billing Model</th>
-                                        <th>Fixed Retainer</th>
-                                        <th>Commission Setup</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Dynamic content -->
-                                </tbody>
-                            </table>
+
+                <div id="clients-detail-subpanel" style="display: none;">
+                    <div class="panel-actions" style="margin-bottom: 20px;">
+                        <button class="btn btn-secondary" onclick="closeClientDetails()" style="padding: 6px 12px; font-size: 13px;">
+                            <i data-lucide="arrow-left"></i> Back to Directory
+                        </button>
+                    </div>
+                    
+                    <!-- Workspace Header Card -->
+                    <div class="dashboard-card" style="margin-bottom: 24px; padding: 24px;">
+                        <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
+                            <div id="ws-avatar" style="width: 56px; height: 56px; background-color: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; font-family: var(--font-heading);">
+                                A
+                            </div>
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <h2 id="ws-client-name" style="margin: 0; font-size: 24px;">Airtel Workspace</h2>
+                                    <span class="badge badge-success" id="ws-client-status">Active</span>
+                                </div>
+                                <p class="text-muted" style="margin: 4px 0 0 0; font-size: 14px;">
+                                    Professional drill-down across retainer, PO, billing, invoice, collection, and approval activity.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                            <div style="display: flex; gap: 16px;">
+                                <div class="form-group-inline">
+                                    <label style="font-size: 11px;">Financial Year</label>
+                                    <select id="ws-filter-fy" class="form-control form-control-sm" style="width: 130px;">
+                                        <option value="FY 2026-27">FY 2026-27</option>
+                                        <option value="FY 2025-26">FY 2025-26</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-inline">
+                                    <label style="font-size: 11px;">Month</label>
+                                    <select id="ws-filter-month" class="form-control form-control-sm" style="width: 100px;">
+                                        <option value="January">Jan</option>
+                                        <option value="February">Feb</option>
+                                        <option value="March">Mar</option>
+                                        <option value="April" selected>Apr</option>
+                                        <option value="May">May</option>
+                                        <option value="June">Jun</option>
+                                        <option value="July">Jul</option>
+                                        <option value="August">Aug</option>
+                                        <option value="September">Sep</option>
+                                        <option value="October">Oct</option>
+                                        <option value="November">Nov</option>
+                                        <option value="December">Dec</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-outline" style="gap: 8px;" onclick="exportWSDetails()">
+                                <i data-lucide="download" style="width: 16px; height: 16px;"></i> Export
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Overview Snapshot Card -->
+                    <div class="dashboard-card" style="padding: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 24px;">
+                            <div>
+                                <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                                    <i data-lucide="bar-chart-3" class="text-gold"></i> Client Overview
+                                </h3>
+                                <p class="text-muted small" id="ws-snapshot-label" style="margin: 4px 0 0 0;">Executive snapshot for Apr</p>
+                            </div>
+                        </div>
+                        
+                        <div class="kpi-grid" style="margin-bottom: 24px;">
+                            <div class="kpi-card" style="background-color: rgba(99, 102, 241, 0.04); border-color: rgba(99, 102, 241, 0.15); padding: 18px 24px;">
+                                <div class="kpi-info">
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="database" style="width: 14px; height: 14px;"></i> Monthly Retainer</span>
+                                    <h3 class="kpi-val" id="ws-kpi-retainer" style="margin-top: 8px; font-size: 20px;">₹0</h3>
+                                </div>
+                            </div>
+                            <div class="kpi-card" style="background-color: rgba(14, 165, 233, 0.04); border-color: rgba(14, 165, 233, 0.15); padding: 18px 24px;">
+                                <div class="kpi-info">
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Total PO</span>
+                                    <h3 class="kpi-val" id="ws-kpi-po" style="margin-top: 8px; font-size: 20px;">₹0</h3>
+                                </div>
+                            </div>
+                            <div class="kpi-card" style="background-color: rgba(16, 185, 129, 0.04); border-color: rgba(16, 185, 129, 0.15); padding: 18px 24px;">
+                                <div class="kpi-info">
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="indian-rupee" style="width: 14px; height: 14px;"></i> Total Billed</span>
+                                    <h3 class="kpi-val" id="ws-kpi-billed" style="margin-top: 8px; font-size: 20px;">₹0</h3>
+                                </div>
+                            </div>
+                            <div class="kpi-card" style="background-color: rgba(245, 158, 11, 0.04); border-color: rgba(245, 158, 11, 0.15); padding: 18px 24px;">
+                                <div class="kpi-info">
+                                    <span class="kpi-label" style="display: flex; align-items: center; gap: 6px;"><i data-lucide="mail" style="width: 14px; height: 14px;"></i> Collection</span>
+                                    <h3 class="kpi-val" id="ws-kpi-collection" style="margin-top: 8px; font-size: 20px;">₹0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 32px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-weight: 600; font-size: 13px; color: var(--text-secondary);">Billing Progress</span>
+                                <span id="ws-progress-text" style="font-weight: 700; font-size: 13px; color: var(--success);">0%</span>
+                            </div>
+                            <div style="width: 100%; height: 8px; background-color: var(--bg-app); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
+                                <div id="ws-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%); transition: width 0.5s ease;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>

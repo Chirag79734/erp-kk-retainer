@@ -88,6 +88,7 @@ function switchTab(targetId) {
     if (targetId === 'dashboard') {
         renderDashboard();
     } else if (targetId === 'clients') {
+        closeClientDetails();
         renderClients();
     } else if (targetId === 'billing') {
         renderBillingLedger();
@@ -302,7 +303,10 @@ function renderClients(filterQuery = '') {
                 <span>${c.status}</span>
             </td>
             <td>
-                <div class="action-buttons">
+                <div class="action-buttons" style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn btn-sm btn-secondary" onclick="viewClientWorkspace('${c.id}')" style="padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--bg-app); color: var(--text-secondary); cursor: pointer;">
+                        <i data-lucide="eye" style="width: 12px; height: 12px;"></i> View Details
+                    </button>
                     <button class="btn-icon edit" onclick="editClient('${c.id}')" title="Edit Client Configuration">
                         <i data-lucide="edit-3"></i>
                     </button>
@@ -316,6 +320,123 @@ function renderClients(filterQuery = '') {
     });
 
     safeCreateIcons();
+}
+
+// --- CLIENT WORKSPACE VIEW ---
+let activeWorkspaceClientId = null;
+
+window.viewClientWorkspace = function(clientId) {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return;
+
+    // Emami and TCPL onboarding check
+    if (client.status === 'Upcoming' || client.id === 'c3' || client.id === 'c4') {
+        alert("Client On-boarding in process");
+        return;
+    }
+
+    activeWorkspaceClientId = clientId;
+    
+    // Set up layout elements
+    document.getElementById('ws-avatar').textContent = client.name.charAt(0);
+    document.getElementById('ws-client-name').textContent = `${client.name} Workspace`;
+    
+    const statusBadge = document.getElementById('ws-client-status');
+    statusBadge.textContent = client.status;
+    statusBadge.className = 'badge';
+    if (client.status === 'Active') {
+        statusBadge.classList.add('badge-success');
+    } else if (client.status === 'Paused') {
+        statusBadge.classList.add('badge-warning');
+    } else {
+        statusBadge.classList.add('badge-secondary');
+    }
+
+    // Bind event listeners if not already bound
+    const monthSelect = document.getElementById('ws-filter-month');
+    const fySelect = document.getElementById('ws-filter-fy');
+    
+    if (!monthSelect.dataset.listenerBound) {
+        monthSelect.addEventListener('change', () => updateWorkspaceMetrics(activeWorkspaceClientId));
+        monthSelect.dataset.listenerBound = "true";
+    }
+    if (!fySelect.dataset.listenerBound) {
+        fySelect.addEventListener('change', () => updateWorkspaceMetrics(activeWorkspaceClientId));
+        fySelect.dataset.listenerBound = "true";
+    }
+
+    // Toggle panels
+    document.getElementById('clients-list-subpanel').style.display = 'none';
+    document.getElementById('clients-detail-subpanel').style.display = 'block';
+
+    // Populate initial calculations
+    updateWorkspaceMetrics(clientId);
+};
+
+window.closeClientDetails = function() {
+    activeWorkspaceClientId = null;
+    document.getElementById('clients-detail-subpanel').style.display = 'none';
+    document.getElementById('clients-list-subpanel').style.display = 'block';
+};
+
+window.exportWSDetails = function() {
+    alert("Exporting workspace data snapshot to CSV...");
+};
+
+function updateWorkspaceMetrics(clientId) {
+    const client = clients.find(c => c.id === clientId);
+    if (!client) return;
+
+    const monthSelect = document.getElementById('ws-filter-month');
+    const fySelect = document.getElementById('ws-filter-fy');
+    
+    const selectedMonth = monthSelect.value; // e.g. "April"
+    const selectedFY = fySelect.value; // e.g. "FY 2026-27"
+    
+    // Determine the year based on selected FY and Month
+    // FY 2026-27 runs from April 2026 to March 2027.
+    let year = 2026;
+    if (selectedFY === 'FY 2026-27') {
+        const lateMonths = ["January", "February", "March"];
+        if (lateMonths.includes(selectedMonth)) {
+            year = 2027;
+        } else {
+            year = 2026;
+        }
+    } else if (selectedFY === 'FY 2025-26') {
+        const lateMonths = ["January", "February", "March"];
+        if (lateMonths.includes(selectedMonth)) {
+            year = 2026;
+        } else {
+            year = 2025;
+        }
+    }
+
+    const fullMonthStr = `${selectedMonth} ${year}`;
+    
+    // Update label text
+    document.getElementById('ws-snapshot-label').textContent = `Executive snapshot for ${selectedMonth.substring(0,3)}`;
+
+    // 1. Monthly Retainer Budget (sum of all BUs configured for this client)
+    const monthlyRetainer = client.lobs ? client.lobs.reduce((sum, lob) => sum + (lob.totalRetainer || 0), 0) : 0;
+    document.getElementById('ws-kpi-retainer').textContent = formatCurrency(monthlyRetainer);
+
+    // 2. Total PO (mocked to 0 for matching exact template)
+    document.getElementById('ws-kpi-po').textContent = "₹0";
+
+    // 3. Total Billed (sum of all transactions logged in this month for this client)
+    const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === fullMonthStr);
+    const totalBilled = clientTxs.reduce((sum, t) => sum + t.totalAmount, 0);
+    document.getElementById('ws-kpi-billed').textContent = formatCurrency(totalBilled);
+
+    // 4. Collection (sum of all paid transactions logged in this month for this client)
+    const collection = clientTxs.filter(t => t.status === 'Paid').reduce((sum, t) => sum + t.totalAmount, 0);
+    document.getElementById('ws-kpi-collection').textContent = formatCurrency(collection);
+
+    // 5. Progress Calculation
+    const progressPercent = monthlyRetainer > 0 ? Math.min(100, Math.round((totalBilled / monthlyRetainer) * 100)) : 0;
+    document.getElementById('ws-progress-text').textContent = `${progressPercent}%`;
+    document.getElementById('ws-progress-bar').style.width = `${progressPercent}%`;
 }
 
 // Open Client Modal (Add mode)
