@@ -1606,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.2");
+    console.log("KK ERP Loaded - v1.1.3");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
