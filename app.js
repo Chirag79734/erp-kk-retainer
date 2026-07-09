@@ -533,16 +533,20 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
     const phone = document.getElementById('client-phone').value;
     const billingModel = document.getElementById('client-model').value;
     
-    let retainerRate = 0;
-    let commissionPercent = 0;
-    let commissionBase = "None";
-
-    if (billingModel === 'Retainer' || billingModel === 'Hybrid') {
-        retainerRate = parseFloat(document.getElementById('client-retainer-rate').value) || 0;
-    }
-    if (billingModel === 'Commission' || billingModel === 'Hybrid') {
-        commissionPercent = parseFloat(document.getElementById('client-commission-percent').value) || 0;
-        commissionBase = document.getElementById('client-commission-base').value;
+    let billingFields = {};
+    if (billingModel) {
+        let retainerRate = 0;
+        let commissionPercent = 0;
+        let commissionBase = "None";
+        
+        if (billingModel === 'Retainer' || billingModel === 'Hybrid') {
+            retainerRate = parseFloat(document.getElementById('client-retainer-rate').value) || 0;
+        }
+        if (billingModel === 'Commission' || billingModel === 'Hybrid') {
+            commissionPercent = parseFloat(document.getElementById('client-commission-percent').value) || 0;
+            commissionBase = document.getElementById('client-commission-base').value;
+        }
+        billingFields = { billingModel, retainerRate, commissionPercent, commissionBase };
     }
 
     if (id) {
@@ -551,16 +555,36 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
         if (index !== -1) {
             clients[index] = {
                 ...clients[index],
-                name, contactName, status, email, phone, billingModel, retainerRate, commissionPercent, commissionBase
+                name, contactName, status, email, phone,
+                ...billingFields
             };
         }
     } else {
         // Add Mode
         const newClient = {
             id: generateId('c'),
-            name, contactName, status, email, phone, billingModel, retainerRate, commissionPercent, commissionBase,
+            name, contactName, status, email, phone,
+            ...billingFields,
             startDate: new Date().toISOString().split('T')[0]
         };
+        
+        // If it's a new client and billing fields are configured, initialize a default LOB list
+        if (billingModel) {
+            newClient.lobs = [
+                {
+                    name: "Core",
+                    billingModel: billingModel,
+                    totalRetainer: billingModel === 'Commission' ? 0 : (billingFields.retainerRate || 0),
+                    fixedSharePercent: billingModel === 'Hybrid' ? 50 : 100,
+                    variableSharePercent: billingModel === 'Hybrid' ? 50 : 0,
+                    commissionPercent: billingFields.commissionPercent || 0,
+                    commissionBase: billingFields.commissionBase || "Revenue"
+                }
+            ];
+        } else {
+            newClient.lobs = [];
+        }
+        
         clients.push(newClient);
     }
 
@@ -582,13 +606,14 @@ window.editClient = function(id) {
     document.getElementById('client-status').value = client.status;
     document.getElementById('client-email').value = client.email;
     document.getElementById('client-phone').value = client.phone;
-    document.getElementById('client-model').value = client.billingModel;
+    const modelVal = client.billingModel || "";
+    document.getElementById('client-model').value = modelVal;
     
-    toggleClientBillingFields(client.billingModel);
+    toggleClientBillingFields(modelVal);
     
-    document.getElementById('client-retainer-rate').value = client.retainerRate;
-    document.getElementById('client-commission-percent').value = client.commissionPercent;
-    document.getElementById('client-commission-base').value = client.commissionBase;
+    document.getElementById('client-retainer-rate').value = client.retainerRate !== undefined ? client.retainerRate : "";
+    document.getElementById('client-commission-percent').value = client.commissionPercent !== undefined ? client.commissionPercent : "";
+    document.getElementById('client-commission-base').value = client.commissionBase || "";
 
     document.getElementById('modal-client').classList.add('active');
 };
@@ -1520,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.0.8");
+    console.log("KK ERP Loaded - v1.0.9");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
