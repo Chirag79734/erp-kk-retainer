@@ -462,11 +462,13 @@ function updateWorkspaceMetrics(clientId) {
     const monthlyRetainer = client.lobs ? client.lobs.reduce((sum, lob) => sum + (lob.totalRetainer || 0), 0) : 0;
     document.getElementById('ws-kpi-retainer').textContent = formatCurrency(monthlyRetainer);
 
-    // 2. Total PO (mocked to 0 for matching exact template)
-    document.getElementById('ws-kpi-po').textContent = "₹0";
+    const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === fullMonthStr);
+
+    // 2. Total PO (sum of transactions for this client and month containing a PO Number)
+    const totalPoAmount = clientTxs.filter(t => t.poNumber).reduce((sum, t) => sum + t.totalAmount, 0);
+    document.getElementById('ws-kpi-po').textContent = formatCurrency(totalPoAmount);
 
     // 3. Total Billed (sum of all transactions logged in this month for this client)
-    const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === fullMonthStr);
     const totalBilled = clientTxs.reduce((sum, t) => sum + t.totalAmount, 0);
     document.getElementById('ws-kpi-billed').textContent = formatCurrency(totalBilled);
 
@@ -500,7 +502,7 @@ function updateWorkspaceMetrics(clientId) {
                 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong></td>
+                    <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong>${t.poNumber ? `<div class="text-muted small" style="font-size: 11px; margin-top: 2px;">PO: ${t.poNumber}</div>` : ''}</td>
                     <td>${t.clientName}${t.lobName ? ` <span class="text-muted small">(${t.lobName})</span>` : ''}</td>
                     <td>${t.billingMonth}</td>
                     <td>${basisValDesc}</td>
@@ -729,7 +731,7 @@ function renderBillingLedger() {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong></td>
+            <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong>${t.poNumber ? `<div class="text-muted small" style="font-size: 11px; margin-top: 2px;">PO: ${t.poNumber}</div>` : ''}</td>
             <td>${t.clientName}${t.lobName ? ` <span class="text-muted small">(${t.lobName})</span>` : ''}</td>
             <td>${t.billingMonth}</td>
             <td>${basisValDesc}</td>
@@ -1146,6 +1148,12 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
     const kpiVal = parseFloat(document.getElementById('log-bill-kpi-value').value) || 0;
     const billType = lob.billingModel === 'SplitRetainer' ? document.getElementById('log-bill-type').value : null;
     const invoiceNum = document.getElementById('log-bill-invoice-number').value.trim();
+    const poNum = document.getElementById('log-bill-po-number').value.trim();
+
+    if (!poNum) {
+        alert("PO Number is required.");
+        return;
+    }
 
     let retainerAmt = 0;
     let commissionAmt = 0;
@@ -1179,6 +1187,7 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
         lobName: lob.name,
         billingType: billType,
         invoiceNumber: invoiceNum,
+        poNumber: poNum,
         date: new Date().toISOString().split('T')[0],
         billingMonth: formattedMonth,
         retainerAmount: retainerAmt,
@@ -1525,6 +1534,7 @@ window.viewInvoice = function(transactionId) {
     }
 
     document.getElementById('inv-id').textContent = tx.invoiceNumber ? tx.invoiceNumber : tx.id.toUpperCase();
+    document.getElementById('inv-po-no').textContent = tx.poNumber ? tx.poNumber : '-';
     document.getElementById('inv-date').textContent = formatDate(tx.date);
     document.getElementById('inv-client-name').textContent = tx.lobName ? `${tx.clientName} (${tx.lobName})` : tx.clientName;
     document.getElementById('inv-client-contact').textContent = client.contactName;
@@ -1606,7 +1616,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.3");
+    console.log("KK ERP Loaded - v1.1.4");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
