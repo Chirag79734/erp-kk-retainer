@@ -478,7 +478,63 @@ function updateWorkspaceMetrics(clientId) {
     const progressPercent = monthlyRetainer > 0 ? Math.min(100, Math.round((totalBilled / monthlyRetainer) * 100)) : 0;
     document.getElementById('ws-progress-text').textContent = `${progressPercent}%`;
     document.getElementById('ws-progress-bar').style.width = `${progressPercent}%`;
+
+    // 6. Render Invoice Summary Table (Client Workspace Ledger history)
+    const wsTableBody = document.querySelector('#ws-invoice-table tbody');
+    if (wsTableBody) {
+        wsTableBody.innerHTML = '';
+        
+        const filteredWS = transactions.filter(t => t.clientId === clientId && t.billingMonth === fullMonthStr);
+        filteredWS.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        if (filteredWS.length === 0) {
+            wsTableBody.innerHTML = `<tr><td colspan="9" class="text-muted text-center" style="padding: 32px; text-align: center;">No invoices logged for this client in ${selectedMonth}.</td></tr>`;
+        } else {
+            filteredWS.forEach(t => {
+                const statusBadgeClass = t.status === 'Paid' ? 'badge-success' : 'badge-warning';
+                
+                let basisValDesc = "-";
+                if (t.variableBaseAmount > 0) {
+                    basisValDesc = `${formatCurrency(t.variableBaseAmount)}`;
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong></td>
+                    <td>${t.clientName}${t.lobName ? ` <span class="text-muted small">(${t.lobName})</span>` : ''}</td>
+                    <td>${t.billingMonth}</td>
+                    <td>${basisValDesc}</td>
+                    <td>${formatCurrency(t.retainerAmount)}</td>
+                    <td>${formatCurrency(t.commissionAmount)}</td>
+                    <td><strong>${formatCurrency(t.totalAmount)}</strong></td>
+                    <td><span class="badge ${statusBadgeClass}">${t.status}</span></td>
+                    <td>
+                        <div class="action-buttons" style="display: flex; gap: 4px;">
+                            <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${t.id}')" style="padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                                <i data-lucide="eye" style="width: 12px; height: 12px;"></i> View
+                            </button>
+                            ${t.status === 'Pending' ? `
+                                <button class="btn btn-sm btn-primary" onclick="markAsPaidWS('${t.id}')" style="background-color: var(--success); border-color: var(--success); padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; cursor: pointer; color: white;">
+                                    <i data-lucide="check" style="width: 12px; height: 12px;"></i> Pay
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                `;
+                wsTableBody.appendChild(row);
+            });
+        }
+    }
+
+    safeCreateIcons();
 }
+
+window.markAsPaidWS = function(id) {
+    markAsPaid(id);
+    if (activeWorkspaceClientId) {
+        updateWorkspaceMetrics(activeWorkspaceClientId);
+    }
+};
 
 // Open Client Modal (Add mode)
 document.getElementById('btn-add-client').addEventListener('click', () => {
@@ -1550,7 +1606,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.0");
+    console.log("KK ERP Loaded - v1.1.1");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard

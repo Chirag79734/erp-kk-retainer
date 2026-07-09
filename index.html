@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="styles.css?v=1.1.0">
+    <link rel="stylesheet" href="styles.css?v=1.1.1">
 </head>
 <body>
     <div class="app-container">
@@ -355,6 +355,37 @@
                             </div>
                             <div style="width: 100%; height: 8px; background-color: var(--bg-app); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
                                 <div id="ws-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary) 0%, var(--success) 100%); transition: width 0.5s ease;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Invoice Summary Card -->
+                    <div class="dashboard-card full-width" style="margin-top: 24px; padding: 24px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+                            <h3 style="margin: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="receipt" class="text-gold"></i> Invoice Summary
+                            </h3>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table" id="ws-invoice-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Invoice No</th>
+                                            <th>Client Name</th>
+                                            <th>Month</th>
+                                            <th>Basis Variable Value</th>
+                                            <th>Retainer Amount</th>
+                                            <th>Commission Amount</th>
+                                            <th>Total Invoice</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Dynamic content -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -805,7 +836,7 @@
     </div>
 
     <!-- Script imports -->
-    <script src="mockData.js?v=1.1.0"></script>
-    <script src="app.js?v=1.1.0"></script>
+    <script src="mockData.js?v=1.1.1"></script>
+    <script src="app.js?v=1.1.1"></script>
 </body>
 </html>
