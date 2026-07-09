@@ -17,7 +17,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="styles.css?v=1.1.5">
+    <link rel="stylesheet" href="styles.css?v=1.1.6">
 </head>
 <body>
     <div class="app-container">
@@ -123,16 +123,16 @@
                 
                 <!-- Main Dashboard Grid -->
                 <div class="dashboard-grid">
-                    <!-- Chart Section -->
-                    <div class="dashboard-card chart-card">
-                        <div class="card-header">
-                            <h3>Financial Performance</h3>
-                            <div class="card-actions">
-                                <span class="badge badge-accent">Monthly Trend</span>
-                            </div>
+                    <!-- Billing Alerts Card -->
+                    <div class="dashboard-card" style="display: flex; flex-direction: column; margin: 0; padding: 24px;">
+                        <div class="card-header border-bottom" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px;">
+                            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px;">
+                                <i data-lucide="bell" class="text-gold" style="width: 18px; height: 18px;"></i>
+                                Billing Action Alerts
+                            </h3>
                         </div>
-                        <div class="card-body">
-                            <canvas id="revenueChart" height="260"></canvas>
+                        <div class="card-body" id="billing-alerts-container" style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; padding: 0;">
+                            <!-- Dynamic Alerts Rendered Here -->
                         </div>
                     </div>
                     
@@ -188,16 +188,16 @@
                 <!-- Bottom Grid: Alerts & Recent Invoices -->
                 <div style="display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap;">
                     
-                    <!-- Billing Alerts Card (Left 35%) -->
-                    <div class="dashboard-card" style="flex: 1 1 350px; display: flex; flex-direction: column; margin: 0; padding: 24px;">
-                        <div class="card-header border-bottom" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px;">
-                            <h3 style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px;">
-                                <i data-lucide="bell" class="text-gold" style="width: 18px; height: 18px;"></i>
-                                Billing Action Alerts
-                            </h3>
+                    <!-- Financial Performance Chart Card (Left 35%) -->
+                    <div class="dashboard-card chart-card" style="flex: 1 1 350px; display: flex; flex-direction: column; margin: 0; padding: 24px;">
+                        <div class="card-header" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0; font-size: 16px;">Financial Performance</h3>
+                            <div class="card-actions">
+                                <span class="badge badge-accent">Monthly Trend</span>
+                            </div>
                         </div>
-                        <div class="card-body" id="billing-alerts-container" style="flex-grow: 1; display: flex; flex-direction: column; gap: 12px; padding: 0;">
-                            <!-- Dynamic Alerts Rendered Here -->
+                        <div class="card-body" style="padding: 0; display: flex; justify-content: center; align-items: center;">
+                            <canvas id="revenueChart" style="max-height: 250px; width: 100%;"></canvas>
                         </div>
                     </div>
 
@@ -864,7 +864,7 @@
     </div>
 
     <!-- Script imports -->
-    <script src="mockData.js?v=1.1.5"></script>
-    <script src="app.js?v=1.1.5"></script>
+    <script src="mockData.js?v=1.1.6"></script>
+    <script src="app.js?v=1.1.6"></script>
 </body>
 </html>

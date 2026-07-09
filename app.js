@@ -225,7 +225,7 @@ function renderBillingAlerts() {
                 <div style="display: flex; align-items: center; gap: 8px; overflow: hidden; flex-grow: 1;">
                     <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: var(--danger); flex-shrink: 0;"></i>
                     <span style="font-size: 12px; font-weight: 500; color: #fca5a5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        Retainer billing pending for ${c.name}
+                        Retainer billing pending for ${c.name} - ${currentMonthName}
                     </span>
                 </div>
                 <button class="btn btn-sm btn-primary" onclick="quickLogBillingForClient('${c.id}')" style="padding: 2px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; gap: 4px; border-radius: var(--border-radius-sm);">
@@ -1695,7 +1695,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    console.log("KK ERP Loaded - v1.1.5");
+    console.log("KK ERP Loaded - v1.1.6");
     initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
