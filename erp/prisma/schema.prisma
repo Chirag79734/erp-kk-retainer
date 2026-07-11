@@ -17,7 +17,7 @@ enum Role {
 }
 
 enum Status {
-  PENDING
+  PENDING_FOR_APPROVAL
   APPROVED
   REJECTED
   PAID
@@ -64,7 +64,7 @@ model Transaction {
   invoiceNumber    String?
   poNumber         String?
   billingMonth     String
-  status           Status        @default(PENDING)
+  status           Status        @default(PENDING_FOR_APPROVAL)
   brandName        String?       // E.g., Bharti Airtel Limited, APB, etc.
   retainerAmount   Float         @default(0)
   commissionAmount Float         @default(0)
