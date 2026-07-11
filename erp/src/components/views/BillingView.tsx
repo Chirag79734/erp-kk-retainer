@@ -7,11 +7,28 @@ import LogBillingModal from './LogBillingModal'
 
 export default function BillingView({ transactions, user, clients }: { transactions: any[], user: any, clients: any[] }) {
   const [showLogModal, setShowLogModal] = useState(false)
+  const [filterClient, setFilterClient] = useState('')
+  const [filterStatus, setFilterStatus] = useState('')
   
   // Finance and Admin can create entries
   const canCreate = user.role === 'ADMIN' || user.role === 'FINANCE'
   // Commercial and Admin can approve entries
   const canApprove = user.role === 'ADMIN' || user.role === 'COMMERCIAL'
+
+  // Apply filters
+  const filteredTransactions = transactions.filter(tx => {
+    let matchClient = true
+    let matchStatus = true
+
+    if (filterClient) {
+      matchClient = tx.businessUnit?.client?.id === filterClient
+    }
+    if (filterStatus) {
+      matchStatus = tx.status === filterStatus
+    }
+
+    return matchClient && matchStatus
+  })
 
   return (
     <div className="space-y-6 h-full flex flex-col">
@@ -21,19 +38,40 @@ export default function BillingView({ transactions, user, clients }: { transacti
           <p className="text-slate-400 text-sm mt-1">View and manage all client retainer billing entries.</p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <button className="btn-secondary">
-            <Filter size={18} />
-            Filter
-          </button>
-          <button className="btn-secondary">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
+            <Filter size={16} className="text-slate-400 ml-2" />
+            <select 
+              className="bg-transparent text-sm text-slate-300 border-none outline-none py-1.5 px-2 cursor-pointer"
+              value={filterClient}
+              onChange={e => setFilterClient(e.target.value)}
+            >
+              <option value="">All Clients</option>
+              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+            
+            <div className="w-px h-5 bg-white/10 mx-1"></div>
+            
+            <select 
+              className="bg-transparent text-sm text-slate-300 border-none outline-none py-1.5 px-2 cursor-pointer"
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value)}
+            >
+              <option value="">All Statuses</option>
+              <option value="APPROVED">Approved</option>
+              <option value="PENDING_FOR_APPROVAL">Pending</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
+          </div>
+
+          <button className="btn-secondary whitespace-nowrap">
             <Download size={18} />
             Export
           </button>
           {canCreate && (
             <button 
               onClick={() => setShowLogModal(true)}
-              className="btn-primary"
+              className="btn-primary whitespace-nowrap"
             >
               <Plus size={18} />
               Log Billing
@@ -57,7 +95,7 @@ export default function BillingView({ transactions, user, clients }: { transacti
               </tr>
             </thead>
             <tbody>
-              {transactions.map(tx => (
+              {filteredTransactions.map(tx => (
                 <tr key={tx.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                   <td className="py-4 px-6 font-mono text-sm text-slate-300">{tx.invoiceNumber || tx.id.substring(0,8)}</td>
                   <td className="py-4 px-6 text-slate-300 text-sm">
@@ -94,11 +132,11 @@ export default function BillingView({ transactions, user, clients }: { transacti
                   </td>
                 </tr>
               ))}
-              {transactions.length === 0 && (
+              {filteredTransactions.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
                     <Receipt className="mx-auto text-slate-600 mb-3" size={32} />
-                    <p>No billing transactions found.</p>
+                    <p>No billing transactions found matching your filters.</p>
                   </td>
                 </tr>
               )}

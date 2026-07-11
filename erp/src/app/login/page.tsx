@@ -36,6 +36,12 @@ export default function LoginPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!email || !password) {
+      setError('Please enter both email and password to create an account.')
+      return
+    }
+
     setLoading(true)
     setError(null)
     setMessage(null)
@@ -51,7 +57,7 @@ export default function LoginPage() {
     if (error) {
       setError(error.message)
     } else {
-      setMessage('Check your email for the confirmation link.')
+      setMessage('Account created! Please check your email for the confirmation link.')
     }
     setLoading(false)
   }

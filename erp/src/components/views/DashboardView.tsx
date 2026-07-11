@@ -1,17 +1,42 @@
 'use client'
-
+import { useState } from 'react'
 import { Users, IndianRupee, FileCheck2, Activity } from 'lucide-react'
 
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js'
+import { Bar } from 'react-chartjs-2'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+)
+
 export default function DashboardView({ transactions, clients, user }: { transactions: any[], clients: any[], user: any }) {
+  const [selectedCalcClient, setSelectedCalcClient] = useState('')
+  const [selectedCalcBU, setSelectedCalcBU] = useState('')
+  const [calcKpi, setCalcKpi] = useState('100')
+
   // Calculate KPIs
   const activeClients = clients.length
   
   // Total monthly retainer billing (from approved transactions for current month)
-  const currentMonth = new Date().toLocaleString('default', { month: 'short' }) + "'" + new Date().getFullYear().toString().slice(2)
-  
   let totalRetainer = 0
   let pendingCount = 0
   
+  // Aggregate chart data (grouped by billingMonth)
+  const monthlySummary: Record<string, { retainer: number, commission: number }> = {}
+
   transactions.forEach(tx => {
     if (tx.status === 'APPROVED') {
       totalRetainer += tx.retainerAmount || 0
@@ -19,6 +44,88 @@ export default function DashboardView({ transactions, clients, user }: { transac
     if (tx.status === 'PENDING_FOR_APPROVAL') {
       pendingCount++
     }
+
+    // Chart Data Collection
+    const month = tx.billingMonth || 'Unknown'
+    if (!monthlySummary[month]) {
+      monthlySummary[month] = { retainer: 0, commission: 0 }
+    }
+    monthlySummary[month].retainer += (tx.retainerAmount || 0)
+    monthlySummary[month].commission += (tx.commissionAmount || 0)
+  })
+
+  // Sort months
+  const monthsSorted = Object.keys(monthlySummary).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
+  const retainerData = monthsSorted.map(m => monthlySummary[m].retainer)
+  const commissionData = monthsSorted.map(m => monthlySummary[m].commission)
+
+  const chartData = {
+    labels: monthsSorted.length > 0 ? monthsSorted : ['No Data'],
+    datasets: [
+      {
+        label: 'Fixed Retainers',
+        data: monthsSorted.length > 0 ? retainerData : [0],
+        backgroundColor: '#6366f1',
+        borderRadius: 6
+      },
+      {
+        label: 'Commissions',
+        data: monthsSorted.length > 0 ? commissionData : [0],
+        backgroundColor: '#10b981',
+        borderRadius: 6
+      }
+    ]
+  }
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'top' as const, labels: { color: '#94a3b8' } }
+    },
+    scales: {
+      y: { grid: { color: '#ffffff10' }, ticks: { color: '#94a3b8' } },
+      x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+    }
+  }
+
+  // Mini Calculator Logic
+  const calcSelectedClient = clients.find(c => c.id === selectedCalcClient)
+  const calcSelectedBU = calcSelectedClient?.businessUnits?.find((bu: any) => bu.id === selectedCalcBU)
+  
+  let calcPreview = null
+  if (calcSelectedBU) {
+    const kpiVal = parseFloat(calcKpi) || 100
+    const fixedSplit = calcSelectedBU.fixedRetainerPercentage / 100
+    const varSplit = 1 - fixedSplit
+    
+    const fixedAmount = calcSelectedBU.monthlyRetainerBase * fixedSplit
+    const varAmount = calcSelectedBU.monthlyRetainerBase * varSplit * (kpiVal / 100)
+    const total = fixedAmount + varAmount
+    
+    calcPreview = {
+      fixed: fixedAmount,
+      variable: varAmount,
+      total: total
+    }
+  }
+
+  // Billing Alerts Logic
+  const now = new Date()
+  const currentMonthName = now.toLocaleString('default', { month: 'long' })
+  const currentYear = now.getFullYear()
+  const currentMonthStr = `${currentMonthName} ${currentYear}`
+  
+  const missingBills: any[] = []
+  clients.forEach(c => {
+    c.businessUnits?.forEach((bu: any) => {
+      const hasBilled = transactions.some(tx => 
+        tx.businessUnitId === bu.id && 
+        tx.billingMonth === currentMonthStr && 
+        tx.status !== 'REJECTED'
+      )
+      if (!hasBilled) missingBills.push({ clientName: c.name, buName: bu.name })
+    })
   })
 
   return (
@@ -49,6 +156,87 @@ export default function DashboardView({ transactions, clients, user }: { transac
           value="Online"
           gradient="from-purple-500 to-indigo-500"
         />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        {/* Chart */}
+        <div className="lg:col-span-2 glass-card p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Financial Performance</h3>
+          <div className="h-[300px] w-full">
+            <Bar data={chartData} options={chartOptions} />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          {/* Action Alerts */}
+          <div className="glass-card p-6 border border-amber-500/20">
+            <h3 className="text-lg font-semibold text-amber-400 mb-4 flex items-center gap-2">
+              <Activity size={18} /> Action Alerts
+            </h3>
+            <div className="space-y-3 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
+              {missingBills.length === 0 ? (
+                <p className="text-sm text-emerald-400">All retainers logged for {currentMonthStr}</p>
+              ) : (
+                missingBills.map((b, i) => (
+                  <div key={i} className="p-2.5 bg-white/5 rounded text-sm text-slate-300 border-l-2 border-amber-500">
+                    <span className="font-semibold text-white">{b.clientName}</span> ({b.buName}) pending for {currentMonthStr}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Mini Calculator */}
+          <div className="glass-card p-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Retainer Lookup</h3>
+            <div className="space-y-3">
+              <select 
+                className="input-field text-sm py-2"
+                value={selectedCalcClient}
+                onChange={e => { setSelectedCalcClient(e.target.value); setSelectedCalcBU('') }}
+              >
+                <option value="">Select Client...</option>
+                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+              
+              <select 
+                className="input-field text-sm py-2"
+                value={selectedCalcBU}
+                onChange={e => setSelectedCalcBU(e.target.value)}
+                disabled={!selectedCalcClient}
+              >
+                <option value="">Select LOB...</option>
+                {calcSelectedClient?.businessUnits?.map((bu: any) => <option key={bu.id} value={bu.id}>{bu.name}</option>)}
+              </select>
+
+              <div className="flex items-center gap-2">
+                <input 
+                  type="number" 
+                  className="input-field text-sm py-2" 
+                  placeholder="KPI %" 
+                  value={calcKpi}
+                  onChange={e => setCalcKpi(e.target.value)}
+                  disabled={!selectedCalcBU}
+                />
+                <span className="text-slate-400 text-sm">%</span>
+              </div>
+
+              {calcPreview && (
+                <div className="pt-3 border-t border-white/10 mt-2 space-y-1">
+                  <div className="flex justify-between text-xs text-slate-400">
+                    <span>Fixed:</span> <span className="text-white">₹{calcPreview.fixed.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-slate-400">
+                    <span>Variable:</span> <span className="text-emerald-400">+₹{calcPreview.variable.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-sm text-indigo-400 pt-1">
+                    <span>Total:</span> <span>₹{calcPreview.total.toLocaleString()}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Recent Transactions Table */}

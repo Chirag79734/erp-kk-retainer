@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import DashboardView from './views/DashboardView'
 import ClientsView from './views/ClientsView'
 import BillingView from './views/BillingView'
+import CommissionCalculatorView from './views/CommissionCalculatorView'
 
 type User = any
 type Client = any
@@ -40,10 +41,12 @@ export default function DashboardApp({
       case 'dashboard':
         return <DashboardView transactions={transactions} clients={clients} user={user} />
       case 'clients':
-        return <ClientsView clients={clients} />
+        return <ClientsView clients={clients} transactions={transactions} />
       case 'billing':
         return <BillingView transactions={transactions} user={user} clients={clients} />
-      // ... Add calculator and invoice viewer later
+      case 'calculator':
+        return <CommissionCalculatorView clients={clients} />
+      // ... Add invoice viewer later if needed
       default:
         return <DashboardView transactions={transactions} clients={clients} user={user} />
     }
@@ -54,6 +57,7 @@ export default function DashboardApp({
       case 'dashboard': return 'Dashboard Overview'
       case 'clients': return 'Clients Directory'
       case 'billing': return 'Billing Ledger'
+      case 'calculator': return 'Commission Calculator'
       default: return 'Overview'
     }
   }
@@ -76,7 +80,6 @@ export default function DashboardApp({
           <NavItem icon={<Users size={20} />} label="Clients Directory" isActive={activeTab === 'clients'} onClick={() => setActiveTab('clients')} />
           <NavItem icon={<Receipt size={20} />} label="Billing Ledger" isActive={activeTab === 'billing'} onClick={() => setActiveTab('billing')} />
           <NavItem icon={<Calculator size={20} />} label="Commission Calc" isActive={activeTab === 'calculator'} onClick={() => setActiveTab('calculator')} />
-          <NavItem icon={<FileText size={20} />} label="Invoice Hub" isActive={activeTab === 'invoice'} onClick={() => setActiveTab('invoice')} />
         </nav>
         
         <div className="p-4 border-t border-white/10">
