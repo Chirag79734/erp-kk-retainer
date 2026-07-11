@@ -80,6 +80,7 @@ export default function DashboardApp({
           <NavItem icon={<Users size={20} />} label="Clients Directory" isActive={activeTab === 'clients'} onClick={() => setActiveTab('clients')} />
           <NavItem icon={<Receipt size={20} />} label="Billing Ledger" isActive={activeTab === 'billing'} onClick={() => setActiveTab('billing')} />
           <NavItem icon={<Calculator size={20} />} label="Commission Calc" isActive={activeTab === 'calculator'} onClick={() => setActiveTab('calculator')} />
+          <NavItem icon={<FileText size={20} />} label="Invoice Hub" isActive={activeTab === 'invoice'} onClick={() => setActiveTab('invoice')} />
         </nav>
         
         <div className="p-4 border-t border-white/10">
@@ -106,13 +107,9 @@ export default function DashboardApp({
         <header className="h-20 border-b border-white/10 bg-[#0f111a]/80 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-20">
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">{getTitle()}</h1>
-            <p className="text-slate-400 text-sm mt-0.5">Welcome back to your business summary.</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="glass-panel px-4 py-2 flex items-center gap-2 text-sm font-medium text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              LIVE
-            </div>
+            {/* Action buttons will go inside specific views (like Add Client in ClientsView) */}
           </div>
         </header>
         

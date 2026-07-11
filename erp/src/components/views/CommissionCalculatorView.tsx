@@ -73,7 +73,7 @@ export default function CommissionCalculatorView({ clients }: { clients: any[] }
                   disabled={!selectedClient}
                 >
                   <option value="">Select LOB...</option>
-                  {(client?.businessUnits || client?.lobs)?.map((b: any) => (
+                  {(client?.businessUnits || client?.lobs || []).map((b: any) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>

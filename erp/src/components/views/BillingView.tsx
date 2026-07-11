@@ -32,52 +32,45 @@ export default function BillingView({ transactions, user, clients }: { transacti
 
   return (
     <div className="space-y-6 h-full flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-white">Billing Ledger</h2>
-          <p className="text-slate-400 text-sm mt-1">View and manage all client retainer billing entries.</p>
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
-            <Filter size={16} className="text-slate-400 ml-2" />
+      {/* Legacy Top Action Buttons */}
+      <div className="flex justify-between items-center gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-300">Filter Client:</label>
             <select 
-              className="bg-transparent text-sm text-slate-300 border-none outline-none py-1.5 px-2 cursor-pointer"
+              className="input-field py-1.5 px-3 text-sm min-w-[150px]"
               value={filterClient}
               onChange={e => setFilterClient(e.target.value)}
             >
               <option value="">All Clients</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
-            
-            <div className="w-px h-5 bg-white/10 mx-1"></div>
-            
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-slate-300">Status:</label>
             <select 
-              className="bg-transparent text-sm text-slate-300 border-none outline-none py-1.5 px-2 cursor-pointer"
+              className="input-field py-1.5 px-3 text-sm min-w-[150px]"
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
             >
               <option value="">All Statuses</option>
-              <option value="APPROVED">Approved</option>
-              <option value="PENDING_FOR_APPROVAL">Pending</option>
+              <option value="APPROVED">Paid</option>
+              <option value="PENDING_FOR_APPROVAL">Billing Initiated</option>
               <option value="REJECTED">Rejected</option>
             </select>
           </div>
-
-          <button className="btn-secondary whitespace-nowrap">
-            <Download size={18} />
-            Export
-          </button>
-          {canCreate && (
-            <button 
-              onClick={() => setShowLogModal(true)}
-              className="btn-primary whitespace-nowrap"
-            >
-              <Plus size={18} />
-              Log Billing
-            </button>
-          )}
         </div>
+
+        {canCreate && (
+          <button 
+            onClick={() => setShowLogModal(true)}
+            className="btn-primary whitespace-nowrap"
+          >
+            <Plus size={18} />
+            Log Billing Transaction
+          </button>
+        )}
       </div>
 
       <div className="glass-card flex-1 overflow-hidden flex flex-col">

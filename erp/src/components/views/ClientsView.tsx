@@ -47,28 +47,23 @@ export default function ClientsView({ clients, transactions = [] }: { clients: a
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-white">Client Directory</h2>
-          <p className="text-slate-400 text-sm mt-1">Manage your active clients and lines of business.</p>
+      {/* Legacy Top Action Buttons */}
+      <div className="flex justify-between items-center gap-4 mb-6">
+        <div className="relative flex-1 max-w-[400px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search clients by name, contact, billing model..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-field pl-10 w-full"
+          />
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="Search clients..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field pl-10"
-            />
-          </div>
-          <button className="btn-primary whitespace-nowrap">
-            <Plus size={18} />
-            Add Client
-          </button>
-        </div>
+        <button className="btn-primary whitespace-nowrap">
+          <Plus size={18} />
+          Add New Client
+        </button>
       </div>
 
       {/* Legacy Data Table Layout */}
