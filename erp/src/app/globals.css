@@ -17,7 +17,7 @@
 
 @layer base {
   body {
-    @apply bg-[var(--color-background)] text-[var(--color-text-primary)] font-inter min-h-screen antialiased;
+    @apply bg-[var(--color-background)] text-[var(--color-text-primary)] min-h-screen antialiased;
   }
 }
 

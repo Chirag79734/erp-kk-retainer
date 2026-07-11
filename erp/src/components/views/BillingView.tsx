@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, Download, FileText, Filter } from 'lucide-react'
 import { StatusBadge } from './DashboardView'
+import LogBillingModal from './LogBillingModal'
 
 export default function BillingView({ transactions, user, clients }: { transactions: any[], user: any, clients: any[] }) {
   const [showLogModal, setShowLogModal] = useState(false)
@@ -106,22 +107,16 @@ export default function BillingView({ transactions, user, clients }: { transacti
         </div>
       </div>
       
-      {/* TODO: Create the actual LogBillingModal component */}
       {showLogModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel w-full max-w-2xl p-6 relative">
-            <h3 className="text-xl font-bold text-white mb-4">Log New Billing Entry</h3>
-            <p className="text-amber-400 mb-4 bg-amber-500/10 p-3 rounded-lg border border-amber-500/20">
-              Migration Notice: Modal form implementation is pending.
-            </p>
-            <button 
-              onClick={() => setShowLogModal(false)}
-              className="btn-secondary"
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <LogBillingModal 
+          clients={clients} 
+          onClose={() => setShowLogModal(false)}
+          onSuccess={() => {
+            setShowLogModal(false)
+            // Trigger a refresh or handle optimistic update
+            window.location.reload()
+          }}
+        />
       )}
     </div>
   )

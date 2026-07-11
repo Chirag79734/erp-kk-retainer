@@ -4,7 +4,7 @@ import { getSessionUser } from '@/utils/auth'
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser()
   
