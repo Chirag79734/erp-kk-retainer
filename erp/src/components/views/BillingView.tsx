@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Plus, Download, FileText, Filter } from 'lucide-react'
-import { StatusBadge } from './DashboardView'
 import LogBillingModal from './LogBillingModal'
 
 export default function BillingView({ transactions, user, clients }: { transactions: any[], user: any, clients: any[] }) {
@@ -31,14 +30,15 @@ export default function BillingView({ transactions, user, clients }: { transacti
   })
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
-      {/* Legacy Top Action Buttons */}
-      <div className="flex justify-between items-center gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-300">Filter Client:</label>
+    <div id="view-billing" className="view-panel active">
+      
+      <div className="panel-actions">
+        <div className="filters-container" style={{ display: 'flex', gap: '16px' }}>
+          <div className="form-group-inline">
+            <label>Client</label>
             <select 
-              className="input-field py-1.5 px-3 text-sm min-w-[150px]"
+              id="filter-client" 
+              className="form-control"
               value={filterClient}
               onChange={e => setFilterClient(e.target.value)}
             >
@@ -47,10 +47,11 @@ export default function BillingView({ transactions, user, clients }: { transacti
             </select>
           </div>
           
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-300">Status:</label>
+          <div className="form-group-inline">
+            <label>Status</label>
             <select 
-              className="input-field py-1.5 px-3 text-sm min-w-[150px]"
+              id="filter-status" 
+              className="form-control"
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
             >
@@ -64,77 +65,75 @@ export default function BillingView({ transactions, user, clients }: { transacti
 
         {canCreate && (
           <button 
+            className="btn btn-primary" 
+            id="btn-log-billing"
             onClick={() => setShowLogModal(true)}
-            className="btn-primary whitespace-nowrap"
           >
-            <Plus size={18} />
-            Log Billing Transaction
+            <Plus size={18} /> Log Billing Transaction
           </button>
         )}
       </div>
 
-      <div className="glass-card flex-1 overflow-hidden flex flex-col">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-[#0f111a]/50 sticky top-0 z-10">
-              <tr className="border-b border-white/10 text-slate-400 text-sm font-medium">
-                <th className="py-4 px-6">Invoice #</th>
-                <th className="py-4 px-6">Date Logged</th>
-                <th className="py-4 px-6">Client / LOB</th>
-                <th className="py-4 px-6">Brand Name</th>
-                <th className="py-4 px-6">Amount</th>
-                <th className="py-4 px-6">Status</th>
-                <th className="py-4 px-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransactions.map(tx => (
-                <tr key={tx.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                  <td className="py-4 px-6 font-mono text-sm text-slate-300">{tx.invoiceNumber || tx.id.substring(0,8)}</td>
-                  <td className="py-4 px-6 text-slate-300 text-sm">
-                    {new Date(tx.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="py-4 px-6">
-                    <p className="text-white font-medium">{tx.businessUnit?.client?.name}</p>
-                    <p className="text-slate-400 text-xs">{tx.businessUnit?.name}</p>
-                  </td>
-                  <td className="py-4 px-6 text-slate-400 text-sm">{tx.brandName || '-'}</td>
-                  <td className="py-4 px-6">
-                    <p className="font-semibold text-emerald-400">₹{tx.totalAmount?.toLocaleString()}</p>
-                  </td>
-                  <td className="py-4 px-6">
-                    <StatusBadge status={tx.status} />
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 text-slate-400 hover:text-white bg-white/5 rounded-lg transition-colors" title="View Details">
-                        <FileText size={16} />
-                      </button>
-                      
-                      {canApprove && tx.status === 'PENDING_FOR_APPROVAL' && (
-                        <>
-                          <button className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30 text-xs font-medium hover:bg-emerald-500/30 transition-colors">
-                            Approve
-                          </button>
-                          <button className="px-3 py-1.5 bg-red-500/20 text-red-400 rounded border border-red-500/30 text-xs font-medium hover:bg-red-500/30 transition-colors">
-                            Reject
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {filteredTransactions.length === 0 && (
+      <div className="dashboard-card full-width">
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table" id="billing-table">
+              <thead>
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <Receipt className="mx-auto text-slate-600 mb-3" size={32} />
-                    <p>No billing transactions found matching your filters.</p>
-                  </td>
+                  <th>Invoice No</th>
+                  <th>Date Logged</th>
+                  <th>Client</th>
+                  <th>LOB</th>
+                  <th>Brand</th>
+                  <th>Billing Month</th>
+                  <th>Retainer</th>
+                  <th>Commission</th>
+                  <th>Total Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredTransactions.map(tx => (
+                  <tr key={tx.id}>
+                    <td>{tx.invoiceNumber || tx.id.substring(0,8)}</td>
+                    <td>{new Date(tx.createdAt).toLocaleDateString()}</td>
+                    <td>{tx.businessUnit?.client?.name}</td>
+                    <td>{tx.businessUnit?.name}</td>
+                    <td>{tx.brandName || '-'}</td>
+                    <td>{tx.billingMonth}</td>
+                    <td>₹{tx.retainerAmount?.toLocaleString() || 0}</td>
+                    <td>₹{tx.commissionAmount?.toLocaleString() || 0}</td>
+                    <td style={{ fontWeight: 600 }}>₹{tx.totalAmount?.toLocaleString() || 0}</td>
+                    <td>
+                      <span className={`status-indicator ${tx.status === 'APPROVED' ? 'status-active' : (tx.status === 'REJECTED' ? 'status-terminated' : 'status-paused')}`}></span>
+                      {tx.status === 'APPROVED' ? 'Paid' : (tx.status === 'REJECTED' ? 'Rejected' : 'Billing Initiated')}
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button className="btn-icon" title="View Details">
+                          <FileText size={16} />
+                        </button>
+                        {canApprove && tx.status === 'PENDING_FOR_APPROVAL' && (
+                          <>
+                            <button className="btn btn-success" style={{ padding: '4px 8px', fontSize: '11px', height: 'auto' }}>Approve</button>
+                            <button className="btn btn-danger" style={{ padding: '4px 8px', fontSize: '11px', height: 'auto', marginLeft: '4px' }}>Reject</button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filteredTransactions.length === 0 && (
+                  <tr>
+                    <td colSpan={11} style={{ textAlign: 'center' }} className="py-8 text-muted">
+                      No billing transactions found matching your filters.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
       
@@ -144,21 +143,10 @@ export default function BillingView({ transactions, user, clients }: { transacti
           onClose={() => setShowLogModal(false)}
           onSuccess={() => {
             setShowLogModal(false)
-            // Trigger a refresh or handle optimistic update
             window.location.reload()
           }}
         />
       )}
     </div>
-  )
-}
-
-function Receipt({ className, size }: { className?: string, size?: number }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size || 24} height={size || 24} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1Z"/>
-      <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/>
-      <path d="M12 17V7"/>
-    </svg>
   )
 }

@@ -36,26 +36,27 @@ export default function CommissionCalculatorView({ clients }: { clients: any[] }
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Calculator className="text-indigo-400" />
-          Commission Calculator
+    <div id="view-calculator" className="view-panel active">
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '20px' }}>
+          <Calculator className="text-primary" /> Commission Calculator
         </h2>
-        <p className="text-slate-400 text-sm mt-1">Stateless scratchpad for calculating variable payouts.</p>
+        <p className="text-muted" style={{ marginTop: '4px', fontSize: '14px' }}>Stateless scratchpad for calculating variable payouts.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="dashboard-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
         {/* Input Panel */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Configuration</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Client</label>
+        <div className="dashboard-card" style={{ margin: 0 }}>
+          <div className="card-header border-bottom">
+            <h3 style={{ margin: 0 }}>Configuration</h3>
+          </div>
+          <div className="card-body">
+            <form id="calc-form">
+              <div className="form-group">
+                <label>Client</label>
                 <select 
-                  className="input-field"
+                  id="calc-client-select" 
+                  className="form-control"
                   value={selectedClient}
                   onChange={e => { setSelectedClient(e.target.value); setSelectedBU('') }}
                 >
@@ -64,10 +65,11 @@ export default function CommissionCalculatorView({ clients }: { clients: any[] }
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Line of Business</label>
+              <div className="form-group">
+                <label>Line of Business</label>
                 <select 
-                  className="input-field"
+                  id="calc-lob-select" 
+                  className="form-control"
                   value={selectedBU}
                   onChange={e => setSelectedBU(e.target.value)}
                   disabled={!selectedClient}
@@ -80,54 +82,60 @@ export default function CommissionCalculatorView({ clients }: { clients: any[] }
               </div>
 
               {bu && (
-                <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-lg">
-                  <p className="text-xs text-indigo-300 font-semibold mb-2 uppercase tracking-wide">Base Config Loaded</p>
-                  <div className="flex justify-between text-sm text-slate-300 mb-1">
-                    <span>Base Retainer:</span>
-                    <span className="font-mono text-white">₹{bu.monthlyRetainerBase.toLocaleString()}</span>
+                <div id="calc-base-config" style={{ padding: '16px', backgroundColor: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.2)', borderRadius: 'var(--border-radius-sm)', marginBottom: '20px' }}>
+                  <p style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 600, margin: '0 0 8px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Base Config Loaded</p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '4px' }}>
+                    <span className="text-muted">Base Retainer:</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--font-heading)' }}>₹{bu.monthlyRetainerBase.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-slate-300">
-                    <span>Split Ratio:</span>
-                    <span className="font-mono text-white">{bu.fixedRetainerPercentage}% Fixed / {100 - bu.fixedRetainerPercentage}% Var</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <span className="text-muted">Split Ratio:</span>
+                    <span style={{ fontWeight: 600, fontFamily: 'var(--font-heading)' }}>{bu.fixedRetainerPercentage}% Fixed / {100 - bu.fixedRetainerPercentage}% Var</span>
                   </div>
                 </div>
               )}
 
-              <div className="pt-4 border-t border-white/10">
-                <label className="block text-sm font-medium text-slate-300 mb-1">KPI Achievement (%)</label>
-                <div className="relative">
-                  <Percent className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <hr className="summary-divider" />
+
+              <div className="form-group">
+                <label>KPI Achievement (%)</label>
+                <div className="search-bar-container">
+                  <Percent className="search-icon" style={{ width: '16px' }} />
                   <input 
                     type="number" 
-                    className="input-field pl-9"
+                    id="calc-kpi-input" 
+                    className="search-input" 
+                    placeholder="e.g. 100"
                     value={kpiAchievement}
                     onChange={e => setKpiAchievement(e.target.value)}
-                    placeholder="e.g. 100"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Optional: Revenue Target (₹)</label>
-                <div className="relative">
-                  <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <div className="form-group">
+                <label>Optional: Revenue Target (₹)</label>
+                <div className="search-bar-container">
+                  <IndianRupee className="search-icon" style={{ width: '16px' }} />
                   <input 
                     type="number" 
-                    className="input-field pl-9"
+                    id="calc-rev-target" 
+                    className="search-input" 
+                    placeholder="Total Revenue Target"
                     value={revenueTarget}
                     onChange={e => setRevenueTarget(e.target.value)}
-                    placeholder="Total Revenue Target"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Optional: Revenue Achieved (₹)</label>
-                <div className="relative">
-                  <TrendingUp className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <div className="form-group">
+                <label>Optional: Revenue Achieved (₹)</label>
+                <div className="search-bar-container">
+                  <TrendingUp className="search-icon" style={{ width: '16px' }} />
                   <input 
                     type="number" 
-                    className="input-field pl-9"
+                    id="calc-rev-achieved" 
+                    className="search-input" 
+                    placeholder="Actual Revenue"
                     value={revenueAchieved}
                     onChange={e => {
                       setRevenueAchieved(e.target.value)
@@ -137,65 +145,64 @@ export default function CommissionCalculatorView({ clients }: { clients: any[] }
                         setKpiAchievement(((ach / tgt) * 100).toFixed(2).toString())
                       }
                     }}
-                    placeholder="Actual Revenue"
                   />
                 </div>
               </div>
-            </div>
+            </form>
           </div>
         </div>
 
         {/* Results Panel */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="dashboard-card" style={{ margin: 0, display: 'flex', flexDirection: 'column' }}>
           {!calculationResult ? (
-            <div className="glass-card h-full min-h-[400px] flex flex-col items-center justify-center text-center p-8">
-              <Calculator className="text-slate-600 mb-4" size={48} />
-              <h3 className="text-lg font-semibold text-slate-300">Awaiting Configuration</h3>
-              <p className="text-slate-500 mt-2 max-w-sm">
+            <div id="calc-empty-state" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px', textAlign: 'center' }}>
+              <Calculator style={{ width: '48px', height: '48px', color: 'var(--border-color)', marginBottom: '16px' }} />
+              <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-secondary)' }}>Awaiting Configuration</h3>
+              <p className="text-muted" style={{ maxWidth: '300px', margin: 0, fontSize: '14px' }}>
                 Select a client and line of business on the left to see the breakdown of their fixed and variable payouts.
               </p>
             </div>
           ) : (
-            <div className="glass-card p-6 h-full flex flex-col animate-fade-in">
-              <h3 className="text-lg font-semibold text-white mb-6">Payout Breakdown</h3>
+            <div id="calc-results-state" style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '24px' }}>
+              <h3 style={{ margin: '0 0 24px 0', fontSize: '18px' }}>Payout Breakdown</h3>
               
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                <div className="p-4 rounded-xl bg-slate-800/50 border border-white/5">
-                  <p className="text-sm text-slate-400 mb-1">Guaranteed Fixed ({calculationResult.fixedPercentage}%)</p>
-                  <p className="text-2xl font-bold text-white">₹{calculationResult.fixedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '32px' }}>
+                <div style={{ padding: '16px', backgroundColor: 'var(--bg-app)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--border-color)' }}>
+                  <p className="text-muted" style={{ margin: '0 0 4px 0', fontSize: '13px' }}>Guaranteed Fixed ({calculationResult.fixedPercentage}%)</p>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>
+                    ₹{calculationResult.fixedAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </p>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-800/50 border border-white/5">
-                  <p className="text-sm text-slate-400 mb-1">Variable Pool ({calculationResult.varPercentage}%)</p>
-                  <p className="text-2xl font-bold text-slate-300">₹{calculationResult.maxVarAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
-                </div>
-              </div>
-
-              <div className="relative mb-8">
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className="w-full border-t border-white/10 border-dashed"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-3 bg-[#1a1d27] text-sm text-indigo-400 font-semibold uppercase tracking-wider">
-                    Performance Result
-                  </span>
+                <div style={{ padding: '16px', backgroundColor: 'var(--bg-app)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--border-color)' }}>
+                  <p className="text-muted" style={{ margin: '0 0 4px 0', fontSize: '13px' }}>Variable Pool ({calculationResult.varPercentage}%)</p>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 700, fontFamily: 'var(--font-heading)', color: 'var(--text-secondary)' }}>
+                    ₹{calculationResult.maxVarAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </p>
                 </div>
               </div>
 
-              <div className="flex-1 flex flex-col justify-center items-center text-center space-y-4">
+              <div style={{ position: 'relative', marginBottom: '32px', textAlign: 'center' }}>
+                <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, borderTop: '1px dashed var(--border-color)' }}></div>
+                <span style={{ position: 'relative', backgroundColor: 'var(--bg-card)', padding: '0 12px', fontSize: '11px', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  Performance Result
+                </span>
+              </div>
+
+              <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center', gap: '16px' }}>
                 <div>
-                  <p className="text-slate-400 text-sm mb-2">Earned Variable ({kpiAchievement}% KPI)</p>
-                  <p className="text-4xl font-bold text-emerald-400">
+                  <p className="text-muted" style={{ margin: '0 0 8px 0', fontSize: '14px' }}>Earned Variable ({kpiAchievement}% KPI)</p>
+                  <p style={{ margin: 0, fontSize: '36px', fontWeight: 800, fontFamily: 'var(--font-heading)', color: 'var(--success)' }}>
                     +₹{calculationResult.earnedVarAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 
-                <div className="w-full max-w-sm h-px bg-gradient-to-r from-transparent via-white/20 to-transparent my-4"></div>
+                <div style={{ width: '200px', height: '1px', background: 'linear-gradient(90deg, transparent, var(--border-color), transparent)', margin: '16px 0' }}></div>
                 
                 <div>
-                  <p className="text-slate-300 text-sm font-medium mb-2">Total Recommended Payout</p>
-                  <div className="inline-block p-1 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
-                    <div className="bg-[#1a1d27] px-8 py-4 rounded-lg">
-                      <p className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">
+                  <p className="text-muted" style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 500 }}>Total Recommended Payout</p>
+                  <div style={{ display: 'inline-block', padding: '2px', borderRadius: '12px', background: 'linear-gradient(90deg, var(--primary), var(--accent))' }}>
+                    <div style={{ backgroundColor: 'var(--bg-card)', padding: '16px 32px', borderRadius: '10px' }}>
+                      <p style={{ margin: 0, fontSize: '36px', fontWeight: 900, fontFamily: 'var(--font-heading)', background: 'linear-gradient(90deg, var(--primary), var(--accent))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                         ₹{calculationResult.totalEarned.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                       </p>
                     </div>
@@ -203,10 +210,10 @@ export default function CommissionCalculatorView({ clients }: { clients: any[] }
                 </div>
               </div>
 
-              <div className="mt-auto pt-6">
-                <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                  <AlertCircle className="text-amber-400 shrink-0 mt-0.5" size={18} />
-                  <p className="text-sm text-amber-200/80">
+              <div style={{ marginTop: 'auto', paddingTop: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '16px', backgroundColor: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: 'var(--border-radius-sm)' }}>
+                  <AlertCircle style={{ color: 'var(--warning)', width: '18px', flexShrink: 0, marginTop: '2px' }} />
+                  <p style={{ margin: 0, fontSize: '13px', color: 'var(--warning)', opacity: 0.9, lineHeight: 1.5 }}>
                     This is a stateless scratchpad. Values calculated here are not saved to the database. To log an official transaction, use the "Log Billing" button on the Billing Ledger.
                   </p>
                 </div>

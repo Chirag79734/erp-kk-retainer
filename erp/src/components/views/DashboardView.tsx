@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Users, IndianRupee, FileCheck2, Activity } from 'lucide-react'
+import { Users, IndianRupee, Wallet, TrendingUp, Bell, Search, BarChart3 } from 'lucide-react'
 
 import {
   Chart as ChartJS,
@@ -25,27 +25,20 @@ ChartJS.register(
 export default function DashboardView({ transactions, clients, user }: { transactions: any[], clients: any[], user: any }) {
   const [selectedCalcClient, setSelectedCalcClient] = useState('')
   const [selectedCalcBU, setSelectedCalcBU] = useState('')
-  const [calcKpi, setCalcKpi] = useState('100')
+  const [calcMonth, setCalcMonth] = useState('')
 
   // Calculate KPIs
   const activeClients = clients.length
   
-  // Total monthly retainer billing (from approved transactions for current month)
   let totalRetainer = 0
-  let pendingCount = 0
   
-  // Aggregate chart data (grouped by billingMonth)
   const monthlySummary: Record<string, { retainer: number, commission: number }> = {}
 
   transactions.forEach(tx => {
     if (tx.status === 'APPROVED') {
       totalRetainer += tx.retainerAmount || 0
     }
-    if (tx.status === 'PENDING_FOR_APPROVAL') {
-      pendingCount++
-    }
 
-    // Chart Data Collection
     const month = tx.billingMonth || 'Unknown'
     if (!monthlySummary[month]) {
       monthlySummary[month] = { retainer: 0, commission: 0 }
@@ -54,10 +47,13 @@ export default function DashboardView({ transactions, clients, user }: { transac
     monthlySummary[month].commission += (tx.commissionAmount || 0)
   })
 
-  // Sort months
   const monthsSorted = Object.keys(monthlySummary).sort((a, b) => new Date(a).getTime() - new Date(b).getTime())
   const retainerData = monthsSorted.map(m => monthlySummary[m].retainer)
   const commissionData = monthsSorted.map(m => monthlySummary[m].commission)
+
+  // Current month fixed & variable averages for KPI (Simplified mock for legacy parity)
+  const currentMonthFixed = retainerData.length > 0 ? retainerData[retainerData.length - 1] : 0
+  const currentMonthVariable = commissionData.length > 0 ? commissionData[commissionData.length - 1] : 0
 
   const chartData = {
     labels: monthsSorted.length > 0 ? monthsSorted : ['No Data'],
@@ -66,13 +62,13 @@ export default function DashboardView({ transactions, clients, user }: { transac
         label: 'Fixed Retainers',
         data: monthsSorted.length > 0 ? retainerData : [0],
         backgroundColor: '#6366f1',
-        borderRadius: 6
+        borderRadius: 4
       },
       {
         label: 'Commissions',
         data: monthsSorted.length > 0 ? commissionData : [0],
         backgroundColor: '#10b981',
-        borderRadius: 6
+        borderRadius: 4
       }
     ]
   }
@@ -81,32 +77,36 @@ export default function DashboardView({ transactions, clients, user }: { transac
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' as const, labels: { color: '#94a3b8' } }
+      legend: { position: 'top' as const }
     },
     scales: {
-      y: { grid: { color: '#ffffff10' }, ticks: { color: '#94a3b8' } },
-      x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+      y: { beginAtZero: true }
     }
   }
 
-  // Mini Calculator Logic
-  const calcSelectedClient = clients.find(c => c.id === selectedCalcClient)
-  const calcSelectedBU = calcSelectedClient?.businessUnits?.find((bu: any) => bu.id === selectedCalcBU)
+  // Mini Calculator Logic (Legacy behavior)
+  const calcSelectedClientObj = clients.find(c => c.id === selectedCalcClient)
+  const calcSelectedBUObj = calcSelectedClientObj?.businessUnits?.find((bu: any) => bu.id === selectedCalcBU)
   
   let calcPreview = null
-  if (calcSelectedBU) {
-    const kpiVal = parseFloat(calcKpi) || 100
-    const fixedSplit = calcSelectedBU.fixedRetainerPercentage / 100
-    const varSplit = 1 - fixedSplit
-    
-    const fixedAmount = calcSelectedBU.monthlyRetainerBase * fixedSplit
-    const varAmount = calcSelectedBU.monthlyRetainerBase * varSplit * (kpiVal / 100)
-    const total = fixedAmount + varAmount
-    
-    calcPreview = {
-      fixed: fixedAmount,
-      variable: varAmount,
-      total: total
+  if (calcSelectedBUObj && calcMonth) {
+    const matchingTx = transactions.find(tx => 
+      tx.businessUnitId === calcSelectedBUObj.id && tx.billingMonth === calcMonth
+    )
+    if (matchingTx) {
+      calcPreview = {
+        status: matchingTx.status === 'APPROVED' ? 'PAID' : (matchingTx.status === 'PENDING_FOR_APPROVAL' ? 'BILLING INITIATED' : 'NOT YET BILLED'),
+        fixed: matchingTx.retainerAmount || 0,
+        variable: matchingTx.commissionAmount || 0,
+        total: matchingTx.totalAmount || 0
+      }
+    } else {
+      calcPreview = {
+        status: 'NOT YET BILLED',
+        fixed: 0,
+        variable: 0,
+        total: 0
+      }
     }
   }
 
@@ -129,186 +129,180 @@ export default function DashboardView({ transactions, clients, user }: { transac
   })
 
   return (
-    <div className="space-y-6">
+    <div id="view-dashboard" className="view-panel active">
       {/* KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard 
-          icon={<Users size={24} />}
-          label="Active Clients"
-          value={activeClients.toString()}
-          gradient="from-blue-500 to-cyan-500"
-        />
-        <KPICard 
-          icon={<IndianRupee size={24} />}
-          label="Total Retainer Billed"
-          value={`₹${totalRetainer.toLocaleString()}`}
-          gradient="from-emerald-500 to-teal-500"
-        />
-        <KPICard 
-          icon={<FileCheck2 size={24} />}
-          label="Pending Approvals"
-          value={pendingCount.toString()}
-          gradient="from-amber-500 to-orange-500"
-        />
-        <KPICard 
-          icon={<Activity size={24} />}
-          label="System Status"
-          value="Online"
-          gradient="from-purple-500 to-indigo-500"
-        />
+      <div className="kpi-grid">
+        <div className="kpi-card purple-gradient">
+          <div className="kpi-icon"><Users /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Active Clients</span>
+            <h3 className="kpi-val">{activeClients}</h3>
+          </div>
+        </div>
+        <div className="kpi-card green-gradient">
+          <div className="kpi-icon"><IndianRupee /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Total Monthly Retainer Billing</span>
+            <h3 className="kpi-val">₹{totalRetainer.toLocaleString()}</h3>
+          </div>
+        </div>
+        <div className="kpi-card blue-gradient">
+          <div className="kpi-icon"><Wallet /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Monthly Fixed Retainer</span>
+            <h3 className="kpi-val">₹{currentMonthFixed.toLocaleString()}</h3>
+          </div>
+        </div>
+        <div className="kpi-card gold-gradient">
+          <div className="kpi-icon"><TrendingUp /></div>
+          <div className="kpi-info">
+            <span className="kpi-label">Monthly Variable Retainer</span>
+            <h3 className="kpi-val">₹{currentMonthVariable.toLocaleString()}</h3>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        {/* Chart */}
-        <div className="lg:col-span-2 glass-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">Financial Performance</h3>
-          <div className="h-[300px] w-full">
-            <Bar data={chartData} options={chartOptions} />
+      {/* Main Dashboard Grid */}
+      <div className="dashboard-grid">
+        {/* Billing Alerts Card */}
+        <div className="dashboard-card" style={{ display: 'flex', flexDirection: 'column', margin: 0, padding: '24px' }}>
+          <div className="card-header border-bottom" style={{ paddingTop: 0, paddingBottom: '16px', marginBottom: '16px' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '16px' }}>
+              <Bell className="text-gold" style={{ width: '18px', height: '18px' }} />
+              Billing Action Alerts
+            </h3>
+          </div>
+          <div className="card-body" style={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '12px', padding: 0 }}>
+            {missingBills.length === 0 ? (
+              <div style={{ padding: '12px', backgroundColor: 'var(--success-light)', borderLeft: '3px solid var(--success)', borderRadius: '4px', color: 'var(--success)' }}>
+                <strong>All clear!</strong> No pending billing actions for {currentMonthStr}.
+              </div>
+            ) : (
+              missingBills.map((b, i) => (
+                <div key={i} style={{ padding: '12px', backgroundColor: 'var(--warning-light)', borderLeft: '3px solid var(--warning)', borderRadius: '4px' }}>
+                  <strong>{b.clientName} ({b.buName})</strong> pending billing action for {currentMonthStr}.
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Action Alerts */}
-          <div className="glass-card p-6 border border-amber-500/20">
-            <h3 className="text-lg font-semibold text-amber-400 mb-4 flex items-center gap-2">
-              <Activity size={18} /> Action Alerts
-            </h3>
-            <div className="space-y-3 max-h-[140px] overflow-y-auto pr-2 custom-scrollbar">
-              {missingBills.length === 0 ? (
-                <p className="text-sm text-emerald-400">All retainers logged for {currentMonthStr}</p>
-              ) : (
-                missingBills.map((b, i) => (
-                  <div key={i} className="p-2.5 bg-white/5 rounded text-sm text-slate-300 border-l-2 border-amber-500">
-                    <span className="font-semibold text-white">{b.clientName}</span> ({b.buName}) pending for {currentMonthStr}
-                  </div>
-                ))
-              )}
-            </div>
+        {/* Retainer Lookup & Tracker Card */}
+        <div className="dashboard-card mini-calc-card">
+          <div className="card-header">
+            <h3>Retainer Lookup & Tracker</h3>
+            <Search className="text-gold" size={18} />
           </div>
-
-          {/* Mini Calculator */}
-          <div className="glass-card p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">Retainer Lookup</h3>
-            <div className="space-y-3">
-              <select 
-                className="input-field text-sm py-2"
-                value={selectedCalcClient}
-                onChange={e => { setSelectedCalcClient(e.target.value); setSelectedCalcBU('') }}
-              >
-                <option value="">Select Client...</option>
-                {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-              
-              <select 
-                className="input-field text-sm py-2"
-                value={selectedCalcBU}
-                onChange={e => setSelectedCalcBU(e.target.value)}
-                disabled={!selectedCalcClient}
-              >
-                <option value="">Select LOB...</option>
-                {calcSelectedClient?.businessUnits?.map((bu: any) => <option key={bu.id} value={bu.id}>{bu.name}</option>)}
-              </select>
-
-              <div className="flex items-center gap-2">
-                <input 
-                  type="number" 
-                  className="input-field text-sm py-2" 
-                  placeholder="KPI %" 
-                  value={calcKpi}
-                  onChange={e => setCalcKpi(e.target.value)}
-                  disabled={!selectedCalcBU}
-                />
-                <span className="text-slate-400 text-sm">%</span>
+          <div className="card-body">
+            <form>
+              <div className="form-group">
+                <label>Select Client</label>
+                <select className="form-control" value={selectedCalcClient} onChange={e => { setSelectedCalcClient(e.target.value); setSelectedCalcBU(''); setCalcMonth('') }}>
+                  <option value="">Choose Client...</option>
+                  {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
               </div>
-
+              <div className="form-group">
+                <label>Business Unit</label>
+                <select className="form-control" value={selectedCalcBU} onChange={e => setSelectedCalcBU(e.target.value)} disabled={!selectedCalcClient}>
+                  <option value="">Choose BU...</option>
+                  {calcSelectedClientObj?.businessUnits?.map((bu: any) => <option key={bu.id} value={bu.id}>{bu.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Billing Month</label>
+                <input type="month" className="form-control" value={calcMonth} onChange={e => setCalcMonth(e.target.value)} disabled={!selectedCalcBU} />
+              </div>
+              
               {calcPreview && (
-                <div className="pt-3 border-t border-white/10 mt-2 space-y-1">
-                  <div className="flex justify-between text-xs text-slate-400">
-                    <span>Fixed:</span> <span className="text-white">₹{calcPreview.fixed.toLocaleString()}</span>
+                <div className="calc-results-preview" style={{ display: 'flex', marginTop: '18px', borderTop: '1px dashed var(--border-color)', paddingTop: '14px' }}>
+                  <div className="result-row" style={{ marginBottom: '8px' }}>
+                    <span>Status:</span>
+                    <span className={`badge ${calcPreview.status === 'PAID' ? 'badge-success' : (calcPreview.status === 'NOT YET BILLED' ? 'badge-danger' : 'badge-warning')}`}>{calcPreview.status}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-slate-400">
-                    <span>Variable:</span> <span className="text-emerald-400">+₹{calcPreview.variable.toLocaleString()}</span>
+                  <div className="result-row">
+                    <span>Fixed Retainer:</span>
+                    <strong>₹{calcPreview.fixed.toLocaleString()}</strong>
                   </div>
-                  <div className="flex justify-between font-bold text-sm text-indigo-400 pt-1">
-                    <span>Total:</span> <span>₹{calcPreview.total.toLocaleString()}</span>
+                  <div className="result-row">
+                    <span>Variable Retainer:</span>
+                    <strong>₹{calcPreview.variable.toLocaleString()}</strong>
+                  </div>
+                  <hr className="summary-divider" style={{ margin: '10px 0' }} />
+                  <div className="result-row total">
+                    <span>Total Retainer:</span>
+                    <strong>₹{calcPreview.total.toLocaleString()}</strong>
                   </div>
                 </div>
               )}
-            </div>
+            </form>
           </div>
         </div>
       </div>
 
-      {/* Recent Transactions Table */}
-      <div className="glass-card p-6 mt-8">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold text-white">Recent Billing Activity</h3>
-        </div>
+      {/* Bottom Grid: Alerts & Recent Invoices */}
+      <div style={{ display: 'flex', gap: '24px', marginTop: '24px', flexWrap: 'wrap' }}>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="border-b border-white/10 text-slate-400 text-sm font-medium">
-                <th className="pb-3 px-4">Invoice #</th>
-                <th className="pb-3 px-4">Client</th>
-                <th className="pb-3 px-4">LOB</th>
-                <th className="pb-3 px-4">Brand</th>
-                <th className="pb-3 px-4">Amount</th>
-                <th className="pb-3 px-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.slice(0, 5).map(tx => (
-                <tr key={tx.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                  <td className="py-4 px-4 font-mono text-sm text-slate-300">{tx.invoiceNumber || '-'}</td>
-                  <td className="py-4 px-4 text-white font-medium">{tx.businessUnit?.client?.name}</td>
-                  <td className="py-4 px-4 text-slate-300">{tx.businessUnit?.name}</td>
-                  <td className="py-4 px-4 text-slate-400 text-sm">{tx.brandName || '-'}</td>
-                  <td className="py-4 px-4 font-semibold text-emerald-400">₹{tx.totalAmount?.toLocaleString()}</td>
-                  <td className="py-4 px-4">
-                    <StatusBadge status={tx.status} />
-                  </td>
-                </tr>
-              ))}
-              {transactions.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">No recent transactions found.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {/* Financial Performance Chart Card */}
+        <div className="dashboard-card chart-card" style={{ flex: '1 1 350px', display: 'flex', flexDirection: 'column', margin: 0, padding: '24px' }}>
+          <div className="card-header" style={{ paddingTop: 0, paddingBottom: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '16px' }}>Financial Performance</h3>
+            <div className="card-actions">
+              <span className="badge badge-accent">Monthly Trend</span>
+            </div>
+          </div>
+          <div className="card-body" style={{ padding: 0, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ maxHeight: '250px', width: '100%', height: '250px' }}>
+              <Bar data={chartData} options={chartOptions} />
+            </div>
+          </div>
         </div>
+
+        {/* Recent Invoices Table */}
+        <div className="dashboard-card table-card" style={{ flex: '2 1 600px', display: 'flex', flexDirection: 'column', margin: 0, padding: '24px' }}>
+          <div className="card-header" style={{ paddingTop: 0, paddingBottom: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ margin: 0, fontSize: '16px' }}>Recent Billing Invoices</h3>
+            <button className="btn btn-sm btn-outline">View All Ledger</button>
+          </div>
+          <div className="card-body p-0">
+            <div className="table-responsive">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Invoice Number</th>
+                    <th>Client Name</th>
+                    <th>Billing Month</th>
+                    <th>Retainer Fee</th>
+                    <th>Commission Fee</th>
+                    <th>Total Billed</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.slice(0, 5).map((tx, idx) => (
+                    <tr key={idx}>
+                      <td>{tx.invoiceNumber || '-'}</td>
+                      <td>{tx.businessUnit?.client?.name}</td>
+                      <td>{tx.billingMonth}</td>
+                      <td>₹{tx.retainerAmount?.toLocaleString()}</td>
+                      <td>₹{tx.commissionAmount?.toLocaleString()}</td>
+                      <td>₹{tx.totalAmount?.toLocaleString()}</td>
+                      <td>
+                        <span className={`status-indicator ${tx.status === 'APPROVED' ? 'status-active' : (tx.status === 'REJECTED' ? 'status-terminated' : 'status-paused')}`}></span>
+                        {tx.status === 'APPROVED' ? 'Paid' : (tx.status === 'REJECTED' ? 'Rejected' : 'Billing Initiated')}
+                      </td>
+                    </tr>
+                  ))}
+                  {transactions.length === 0 && (
+                    <tr><td colSpan={7} style={{ textAlign: 'center' }}>No recent invoices.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )
-}
-
-function KPICard({ icon, label, value, gradient }: { icon: React.ReactNode, label: string, value: string, gradient: string }) {
-  return (
-    <div className="glass-card p-6 relative overflow-hidden group">
-      <div className={`absolute -right-6 -top-6 w-24 h-24 bg-gradient-to-br ${gradient} rounded-full opacity-20 group-hover:scale-150 transition-transform duration-500 ease-out`}></div>
-      <div className="flex items-center gap-4 relative z-10">
-        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-lg`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-sm font-medium text-slate-400">{label}</p>
-          <h3 className="text-2xl font-bold text-white mt-1">{value}</h3>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function StatusBadge({ status }: { status: string }) {
-  switch (status) {
-    case 'APPROVED':
-      return <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Approved</span>
-    case 'PENDING_FOR_APPROVAL':
-      return <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">Pending</span>
-    case 'REJECTED':
-      return <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20">Rejected</span>
-    default:
-      return <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20">{status}</span>
-  }
 }

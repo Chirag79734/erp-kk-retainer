@@ -17,13 +17,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
-      <body className="antialiased bg-[#0f111a] text-slate-200">
-        <div className="flex h-screen overflow-hidden">
-          {/* Main App Content */}
-          <main className="flex-1 flex flex-col h-full overflow-hidden">
-            {children}
-          </main>
-        </div>
+      <body className="antialiased">
+        {children}
       </body>
     </html>
   )
