@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COMMERCIAL
+  FINANCE
+  ACCOUNT_MANAGER
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  role         Role          @default(ACCOUNT_MANAGER)
+  isVerified   Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+  approvals    ApprovalLog[]
+}
+
+model Client {
+  id          String         @id @default(uuid())
+  name        String
+  contactName String?
+  email       String?
+  phone       String?
+  status      String         @default("Active")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  lobs        BusinessUnit[]
+}
+
+model BusinessUnit {
+  id                   String        @id @default(uuid())
+  name                 String
+  billingModel         String        // e.g., "SplitRetainer", "Retainer", "Hybrid", "Commission"
+  totalRetainer        Float?
+  fixedSharePercent    Float?
+  variableSharePercent Float?
+  commissionPercent    Float?
+  clientId             String
+  client               Client        @relation(fields: [clientId], references: [id])
+  transactions         Transaction[]
+}
+
+model Transaction {
+  id               String        @id @default(uuid())
+  invoiceNumber    String?
+  poNumber         String?
+  billingMonth     String
+  status           Status        @default(PENDING)
+  brandName        String?       // E.g., Bharti Airtel Limited, APB, etc.
+  retainerAmount   Float         @default(0)
+  commissionAmount Float         @default(0)
+  totalAmount      Float         @default(0)
+  
+  // Relations
+  businessUnitId   String
+  businessUnit     BusinessUnit  @relation(fields: [businessUnitId], references: [id])
+  createdById      String
+  createdBy        User          @relation(fields: [createdById], references: [id])
+  
+  // Audit Logs
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  approvalLogs     ApprovalLog[]
+}
+
+model ApprovalLog {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  actionBy      String
+  user          User        @relation(fields: [actionBy], references: [id])
+  action        String      // e.g., "APPROVED", "REJECTED"
+  comments      String?
+  createdAt     DateTime    @default(now())
+}
