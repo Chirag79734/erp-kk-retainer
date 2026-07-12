@@ -53,15 +53,24 @@
             </nav>
             
             <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="avatar">AD</div>
+                <div class="user-profile" id="user-profile-section" style="display: none;">
+                    <div class="avatar" id="user-avatar">?</div>
                     <div class="user-info">
-                        <h4>Admin Panel</h4>
-                        <p>billing@kkcompany.com</p>
+                        <h4 id="user-name">Loading...</h4>
+                        <p id="user-email">loading...</p>
                     </div>
                 </div>
+                <button id="btn-logout" style="display: none; width: 100%; margin-top: 12px; padding: 10px; background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--border-radius-sm); font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    Logout
+                </button>
             </div>
         </aside>
+        
+        <!-- Loading Overlay -->
+        <div id="auth-loading-overlay" style="position: fixed; inset: 0; background-color: var(--bg-main); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+            <div class="logo-icon" style="width: 56px; height: 56px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 24px; color: white; margin-bottom: 16px;">KK</div>
+            <p style="color: var(--text-secondary); font-family: 'Inter', sans-serif;">Verifying session...</p>
+        </div>
         
         <!-- Main Application Area -->
         <main class="main-content">
@@ -880,6 +889,41 @@
             </form>
         </div>
     </div>
+
+    <!-- Auth State Management -->
+    <script type="module">
+        import { auth, onAuthStateChanged, signOut } from './auth.js';
+
+        const loadingOverlay = document.getElementById('auth-loading-overlay');
+        const userProfileSection = document.getElementById('user-profile-section');
+        const btnLogout = document.getElementById('btn-logout');
+        const userName = document.getElementById('user-name');
+        const userEmail = document.getElementById('user-email');
+        const userAvatar = document.getElementById('user-avatar');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // User is signed in, hide loader
+                loadingOverlay.style.display = 'none';
+                
+                // Show profile
+                userProfileSection.style.display = 'flex';
+                btnLogout.style.display = 'block';
+                userName.textContent = user.displayName || 'Admin User';
+                userEmail.textContent = user.email;
+                userAvatar.textContent = (user.displayName || 'A').charAt(0).toUpperCase();
+            } else {
+                // User is signed out, redirect to login
+                window.location.href = 'login.html';
+            }
+        });
+
+        btnLogout.addEventListener('click', () => {
+            signOut(auth).catch((error) => {
+                console.error('Sign Out Error', error);
+            });
+        });
+    </script>
 
     <!-- Script imports -->
     <script src="mockData.js?v=1.1.18"></script>
