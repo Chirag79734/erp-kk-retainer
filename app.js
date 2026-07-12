@@ -171,7 +171,11 @@ function renderDashboard() {
         recentTableBody.innerHTML = `<tr><td colspan="8" class="text-muted text-center" style="text-align:center; padding: 24px;">No billing records found.</td></tr>`;
     } else {
         sortedTransactions.forEach(t => {
-            const statusBadgeClass = t.status === 'Paid' ? 'badge-success' : 'badge-warning';
+            let statusBadgeClass = 'badge-warning';
+            const st = (t.status || '').toUpperCase();
+            if (st === 'PAID' || st === 'APPROVED') statusBadgeClass = 'badge-success';
+            else if (st === 'REJECTED') statusBadgeClass = 'badge-danger';
+            
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong></td>
@@ -533,7 +537,10 @@ function updateWorkspaceMetrics(clientId) {
             wsTableBody.innerHTML = `<tr><td colspan="10" class="text-muted text-center" style="padding: 32px; text-align: center;">No invoices logged for this client.</td></tr>`;
         } else {
             filteredWS.forEach(t => {
-                const statusBadgeClass = t.status === 'Paid' ? 'badge-success' : 'badge-warning';
+                let statusBadgeClass = 'badge-warning';
+                const st = (t.status || '').toUpperCase();
+                if (st === 'PAID' || st === 'APPROVED') statusBadgeClass = 'badge-success';
+                else if (st === 'REJECTED') statusBadgeClass = 'badge-danger';
                 
                 let basisValDesc = "-";
                 if (t.variableBaseAmount > 0) {
@@ -787,8 +794,9 @@ async function renderBillingLedger() {
 
     filteredTransactions.forEach(t => {
         let statusBadgeClass = 'badge-warning';
-        if (t.status === 'Paid' || t.status === 'Approved') statusBadgeClass = 'badge-success';
-        if (t.status === 'Rejected') statusBadgeClass = 'badge-danger';
+        const st = (t.status || '').toUpperCase();
+        if (st === 'PAID' || st === 'APPROVED') statusBadgeClass = 'badge-success';
+        else if (st === 'REJECTED') statusBadgeClass = 'badge-danger';
         
         let basisValDesc = "-";
         if (t.variableBaseAmount > 0) {
