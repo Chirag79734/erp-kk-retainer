@@ -99,6 +99,9 @@ function safeCreateIcons() {
     try {
         if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
             lucide.createIcons();
+            if (window.currentUserRole && window.applyRBAC) {
+                window.applyRBAC(window.currentUserRole);
+            }
         } else {
             console.warn("Lucide library not loaded yet.");
         }
@@ -500,10 +503,10 @@ function renderClients(filterQuery = '') {
                     <button class="btn btn-sm btn-secondary" onclick="viewClientWorkspace('${c.id}')" style="padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--bg-app); color: var(--text-secondary); cursor: pointer;">
                         <i data-lucide="eye" style="width: 12px; height: 12px;"></i> View Details
                     </button>
-                    <button class="btn-icon edit" onclick="editClient('${c.id}')" title="Edit Client Configuration">
+                    <button class="btn-icon edit" onclick="editClient('${c.id}')" title="Edit Client Configuration" data-role-required="admin">
                         <i data-lucide="edit-3"></i>
                     </button>
-                    <button class="btn-icon delete" onclick="deleteClient('${c.id}')" title="Remove Client">
+                    <button class="btn-icon delete" onclick="deleteClient('${c.id}')" title="Remove Client" data-role-required="admin">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>
@@ -911,7 +914,7 @@ function renderBillingLedger() {
                     <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${t.id}')" style="cursor: pointer;">
                         <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
                     </button>
-                    <button class="btn-icon delete" onclick="deleteTransaction('${t.id}')" title="Delete record" style="cursor: pointer;">
+                    <button class="btn-icon delete" onclick="deleteTransaction('${t.id}')" title="Delete record" style="cursor: pointer;" data-role-required="admin">
                         <i data-lucide="trash-2"></i>
                     </button>
                 </div>

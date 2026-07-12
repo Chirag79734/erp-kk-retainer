@@ -250,7 +250,7 @@
                             <i data-lucide="search" class="search-icon"></i>
                             <input type="text" id="search-clients" placeholder="Search clients by name, contact, billing model..." class="search-input">
                         </div>
-                        <button class="btn btn-primary" id="btn-add-client">
+                        <button class="btn btn-primary" id="btn-add-client" data-role-required="admin">
                             <i data-lucide="user-plus"></i> Add New Client
                         </button>
                     </div>
@@ -445,7 +445,7 @@
                             </select>
                         </div>
                     </div>
-                    <button class="btn btn-primary" id="btn-create-bill">
+                    <button class="btn btn-primary" id="btn-create-bill" data-role-required="editor">
                         <i data-lucide="plus-circle"></i> Log Billing Transaction
                     </button>
                 </div>
@@ -901,17 +901,59 @@
         const userEmail = document.getElementById('user-email');
         const userAvatar = document.getElementById('user-avatar');
 
-        onAuthStateChanged(auth, (user) => {
+        window.applyRBAC = function(role) {
+            const elements = document.querySelectorAll('[data-role-required]');
+            elements.forEach(el => {
+                const requiredRole = el.getAttribute('data-role-required');
+                if (requiredRole === 'admin' && role !== 'admin') {
+                    el.style.display = 'none';
+                } else if (requiredRole === 'editor' && (role !== 'admin' && role !== 'editor')) {
+                    el.style.display = 'none';
+                }
+            });
+        };
+
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // User is signed in, hide loader
-                loadingOverlay.style.display = 'none';
-                
-                // Show profile
-                userProfileSection.style.display = 'flex';
-                btnLogout.style.display = 'block';
-                userName.textContent = user.displayName || 'Admin User';
-                userEmail.textContent = user.email;
-                userAvatar.textContent = (user.displayName || 'A').charAt(0).toUpperCase();
+                // Fetch Role from Firestore
+                const { db, doc, getDoc, signOut } = await import('./auth.js');
+                try {
+                    const userDocRef = doc(db, 'Users', user.email);
+                    const userDocSnap = await getDoc(userDocRef);
+                    
+                    if (userDocSnap.exists()) {
+                        window.currentUserRole = userDocSnap.data().role || 'viewer';
+                        window.applyRBAC(window.currentUserRole);
+                        
+                        // User is signed in, hide loader
+                        loadingOverlay.style.display = 'none';
+                        
+                        // Show profile
+                        userProfileSection.style.display = 'flex';
+                        btnLogout.style.display = 'block';
+                        userName.textContent = user.displayName || 'User';
+                        userEmail.textContent = user.email;
+                        
+                        // Show role badge
+                        const roleBadge = document.createElement('span');
+                        roleBadge.style.fontSize = '10px';
+                        roleBadge.style.padding = '2px 6px';
+                        roleBadge.style.borderRadius = '4px';
+                        roleBadge.style.marginLeft = '8px';
+                        roleBadge.style.backgroundColor = window.currentUserRole === 'admin' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(16, 185, 129, 0.2)';
+                        roleBadge.style.color = window.currentUserRole === 'admin' ? '#a5b4fc' : '#6ee7b7';
+                        roleBadge.textContent = window.currentUserRole.toUpperCase();
+                        userName.appendChild(roleBadge);
+                        
+                        userAvatar.textContent = (user.displayName || 'U').charAt(0).toUpperCase();
+                    } else {
+                        await signOut(auth);
+                        window.location.href = 'login.html';
+                    }
+                } catch (error) {
+                    console.error("Firestore Error:", error);
+                    window.location.href = 'login.html';
+                }
             } else {
                 // User is signed out, redirect to login
                 window.location.href = 'login.html';
