@@ -151,15 +151,25 @@
 
     <!-- Auth Module -->
     <script type="module">
-        import { auth, provider, signInWithPopup, onAuthStateChanged } from './auth.js';
+        import { auth, provider, signInWithPopup, onAuthStateChanged, signOut } from './auth.js';
 
         const loginBtn = document.getElementById('login-btn');
         const errorMsg = document.getElementById('error-message');
 
+        // Check URL for errors
+        const urlParams = new URLSearchParams(window.location.search);
+        const errorParam = urlParams.get('error');
+        if (errorParam === 'permission_denied' || errorParam === 'notfound') {
+            errorMsg.textContent = "Access Denied. You are not authorized by the organization.";
+            errorMsg.style.display = 'block';
+            // Ensure they are fully signed out if they hit an error
+            signOut(auth).catch(console.error);
+        }
+
         // Check if user is already logged in
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // Redirect to dashboard
+            if (user && !errorParam) {
+                // Redirect to dashboard ONLY if no error flag is present
                 window.location.href = 'index.html';
             }
         });

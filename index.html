@@ -948,11 +948,12 @@
                         userAvatar.textContent = (user.displayName || 'U').charAt(0).toUpperCase();
                     } else {
                         await signOut(auth);
-                        window.location.href = 'login.html';
+                        window.location.href = 'login.html?error=notfound';
                     }
                 } catch (error) {
                     console.error("Firestore Error:", error);
-                    window.location.href = 'login.html';
+                    await signOut(auth);
+                    window.location.href = 'login.html?error=permission_denied';
                 }
             } else {
                 // User is signed out, redirect to login
