@@ -185,7 +185,7 @@
                     // VERIFY FIRESTORE ROLE
                     import('./auth.js').then(async ({ db, doc, getDoc, signOut }) => {
                         try {
-                            const userDocRef = doc(db, 'Users', result.user.email);
+                            const userDocRef = doc(db, 'users', result.user.email);
                             const userDocSnap = await getDoc(userDocRef);
                             
                             if (userDocSnap.exists()) {

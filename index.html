@@ -918,7 +918,7 @@
                 // Fetch Role from Firestore
                 const { db, doc, getDoc, signOut } = await import('./auth.js');
                 try {
-                    const userDocRef = doc(db, 'Users', user.email);
+                    const userDocRef = doc(db, 'users', user.email);
                     const userDocSnap = await getDoc(userDocRef);
                     
                     if (userDocSnap.exists()) {
