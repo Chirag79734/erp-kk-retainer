@@ -134,8 +134,40 @@
                     </div>
                 </div>
                 
-                <!-- Main Dashboard Grid -->
-                <div class="dashboard-grid">
+                <!-- Top Grid: Recent Invoices -->
+                <div style="margin-top: 24px;">
+                    <!-- Recent Invoices Table (Full Width) -->
+                    <div class="dashboard-card table-card" style="display: flex; flex-direction: column; margin: 0; padding: 24px;">
+                        <div class="card-header" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="margin: 0; font-size: 16px;">Recent Billing Invoices</h3>
+                            <button class="btn btn-sm btn-outline" onclick="switchTab('billing')" style="cursor: pointer;">View All Ledger</button>
+                        </div>
+                        <div class="card-body" style="padding: 0;">
+                            <div class="table-responsive">
+                                <table class="table" id="recent-invoices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Invoice Number</th>
+                                            <th>Client Name</th>
+                                            <th>Billing Month</th>
+                                            <th>Retainer Fee</th>
+                                            <th>Commission Fee</th>
+                                            <th>Total Billed</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Dashboard Grid: Alerts & Lookup -->
+                <div class="dashboard-grid" style="margin-top: 24px;">
                     <!-- Billing Alerts Card -->
                     <div class="dashboard-card" style="display: flex; flex-direction: column; margin: 0; padding: 24px;">
                         <div class="card-header border-bottom" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px;">
@@ -196,53 +228,6 @@
                             </form>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Bottom Grid: Alerts & Recent Invoices -->
-                <div style="display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap;">
-                    
-                    <!-- Financial Performance Chart Card (Left 35%) -->
-                    <div class="dashboard-card chart-card" style="flex: 1 1 350px; display: flex; flex-direction: column; margin: 0; padding: 24px;">
-                        <div class="card-header" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin: 0; font-size: 16px;">Financial Performance</h3>
-                            <div class="card-actions">
-                                <span class="badge badge-accent">Monthly Trend</span>
-                            </div>
-                        </div>
-                        <div class="card-body" style="padding: 0; display: flex; justify-content: center; align-items: center;">
-                            <canvas id="revenueChart" style="max-height: 250px; width: 100%;"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Recent Invoices Table (Right 65%) -->
-                    <div class="dashboard-card table-card" style="flex: 2 1 600px; display: flex; flex-direction: column; margin: 0; padding: 24px;">
-                        <div class="card-header" style="padding-top: 0; padding-bottom: 16px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin: 0; font-size: 16px;">Recent Billing Invoices</h3>
-                            <button class="btn btn-sm btn-outline" onclick="switchTab('billing')" style="cursor: pointer;">View All Ledger</button>
-                        </div>
-                        <div class="card-body" style="padding: 0;">
-                            <div class="table-responsive">
-                                <table class="table" id="recent-invoices-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Invoice Number</th>
-                                            <th>Client Name</th>
-                                            <th>Billing Month</th>
-                                            <th>Retainer Fee</th>
-                                            <th>Commission Fee</th>
-                                            <th>Total Billed</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Dynamic rows -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
             
