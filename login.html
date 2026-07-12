@@ -225,14 +225,6 @@
             successMsg.style.display = 'none';
 
             try {
-                // PRE-VERIFICATION: Check Firestore FIRST
-                const userDocRef = doc(db, 'users', email);
-                const userDocSnap = await getDoc(userDocRef);
-                
-                if (!userDocSnap.exists()) {
-                    throw new Error("Email not registered with the organization. Contact Admin.");
-                }
-
                 // If authorized, send the link
                 const actionCodeSettings = {
                     // URL you want to redirect back to. The domain must be whitelisted.
