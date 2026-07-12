@@ -936,7 +936,7 @@ window.updateTransactionStatus = function(id, newStatus) {
             await logAuditAction(`TRANSACTION_${newStatus.toUpperCase()}`, `Transaction ${id} was ${newStatus}.`);
             
             renderBillingLedger();
-            populateDashboardMetrics();
+            renderDashboard();
         } catch (error) {
             console.error("Failed to update status:", error);
             alert("Failed to update status.");
