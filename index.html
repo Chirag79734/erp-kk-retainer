@@ -50,6 +50,10 @@
                     <i data-lucide="file-text"></i>
                     <span>Invoice Hub</span>
                 </a>
+                <a href="#" class="nav-item" data-target="audit-logs">
+                    <i data-lucide="shield-alert"></i>
+                    <span>Audit Logs</span>
+                </a>
             </nav>
             
             <div class="sidebar-footer">
@@ -445,7 +449,7 @@
                             </select>
                         </div>
                     </div>
-                    <button class="btn btn-primary" id="btn-create-bill" data-role-required="editor">
+                    <button class="btn btn-primary" id="btn-create-bill" data-role-required="admin,finance">
                         <i data-lucide="plus-circle"></i> Log Billing Transaction
                     </button>
                 </div>
@@ -687,6 +691,40 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- VIEW: Audit Logs -->
+            <div id="view-audit-logs" class="view-panel">
+                <div class="panel-actions" style="justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="margin: 0; font-size: 20px;">System Audit Trail</h2>
+                        <p class="text-muted" style="margin: 4px 0 0 0; font-size: 14px;">Immutable log of all system actions and approvals.</p>
+                    </div>
+                    <button class="btn btn-secondary" onclick="loadAuditLogs()">
+                        <i data-lucide="refresh-cw"></i> Refresh
+                    </button>
+                </div>
+                
+                <div class="dashboard-card full-width">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table" id="audit-logs-table">
+                                <thead>
+                                    <tr>
+                                        <th>Timestamp</th>
+                                        <th>User</th>
+                                        <th>Action</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
     
@@ -904,11 +942,11 @@
         window.applyRBAC = function(role) {
             const elements = document.querySelectorAll('[data-role-required]');
             elements.forEach(el => {
-                const requiredRole = el.getAttribute('data-role-required');
-                if (requiredRole === 'admin' && role !== 'admin') {
+                const requiredRoles = el.getAttribute('data-role-required').split(',');
+                if (!requiredRoles.includes(role)) {
                     el.style.display = 'none';
-                } else if (requiredRole === 'editor' && (role !== 'admin' && role !== 'editor')) {
-                    el.style.display = 'none';
+                } else {
+                    el.style.display = '';
                 }
             });
         };

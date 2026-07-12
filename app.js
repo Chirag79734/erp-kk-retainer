@@ -6,93 +6,48 @@ let transactions = [];
 let revenueChart = null;
 
 // Initialize app data
-function initData() {
-    // Always load client LOB config from mockData.js (initialClients) to guarantee structural updates take effect immediately
-    clients = initialClients;
-    localStorage.setItem("erp_clients", JSON.stringify(clients));
-    
-    // Transactions are user-generated ledger items, load from localStorage
-    transactions = JSON.parse(localStorage.getItem("erp_transactions")) || initialTransactions;
-    
-    // Migrate any existing legacy Airtel "Performance" entries to the new Broadband, Mobility, and Finance BUs
-    let migrated = false;
-    const newTxs = [];
-    transactions.forEach(t => {
-        if (t.clientId === 'c1' && t.lobName === 'Performance') {
-            migrated = true;
-            const kpiVal = t.kpiAchievement !== undefined ? t.kpiAchievement : 100;
-            const scoreFactor = kpiVal / 100;
-
-            // Broadband (1,000,000 retainer, 85% fixed, 15% variable)
-            newTxs.push({
-                ...t,
-                id: t.id + '_a',
-                lobName: 'Broadband',
-                brandName: 'Bharti Airtel Limited',
-                invoiceNumber: t.invoiceNumber + '-A',
-                retainerAmount: 850000,
-                commissionAmount: 150000 * scoreFactor,
-                totalAmount: 850000 + (150000 * scoreFactor)
-            });
-
-            // Mobility (1,000,000 retainer, 85% fixed, 15% variable)
-            newTxs.push({
-                ...t,
-                id: t.id + '_b',
-                lobName: 'Mobility',
-                brandName: 'Bharti Airtel Limited',
-                invoiceNumber: t.invoiceNumber + '-B',
-                retainerAmount: 850000,
-                commissionAmount: 150000 * scoreFactor,
-                totalAmount: 850000 + (150000 * scoreFactor)
-            });
-
-            // Finance (200,000 retainer, 85% fixed, 15% variable)
-            newTxs.push({
-                ...t,
-                id: t.id + '_c',
-                lobName: 'Finance',
-                brandName: 'Xtelify Limited',
-                invoiceNumber: t.invoiceNumber + '-C',
-                retainerAmount: 170000,
-                commissionAmount: 30000 * scoreFactor,
-                totalAmount: 170000 + (30000 * scoreFactor)
-            });
-        } else {
-            newTxs.push(t);
-        }
-    });
-
-    if (migrated) {
-        transactions = newTxs;
+async function initData() {
+    try {
+        const { db, collection, getDocs } = await import('./auth.js');
+        
+        // Fetch clients
+        const clientsSnap = await getDocs(collection(db, 'clients'));
+        clients = [];
+        clientsSnap.forEach(doc => {
+            clients.push({ id: doc.id, ...doc.data() });
+        });
+        
+        // Fetch transactions
+        const txSnap = await getDocs(collection(db, 'transactions'));
+        transactions = [];
+        txSnap.forEach(doc => {
+            transactions.push({ id: doc.id, ...doc.data() });
+        });
+        
+    } catch (err) {
+        console.error("Failed to fetch data from Firestore:", err);
     }
+}
 
-    // Ensure all existing transactions have a brandName populated based on their client & LOB
-    let updatedBrandNames = false;
-    transactions.forEach(t => {
-        if (!t.brandName) {
-            updatedBrandNames = true;
-            if (t.clientId === 'c1') {
-                if (t.lobName === 'Mobility' || t.lobName === 'Broadband') {
-                    t.brandName = "Bharti Airtel Limited";
-                } else if (t.lobName === 'Finance' || t.lobName === 'Airtel Thanks' || t.lobName === 'Airtel Xstream') {
-                    t.brandName = "Xtelify Limited";
-                } else if (t.lobName === 'Airtel Payment Bank') {
-                    t.brandName = "APB";
-                } else {
-                    t.brandName = "Bharti Airtel Limited";
-                }
-            } else if (t.clientId === 'c2') {
-                t.brandName = "ITC Hotel Limited";
-            }
-        }
-    });
-    
-    localStorage.setItem("erp_transactions", JSON.stringify(transactions));
+async function logAuditAction(action, details) {
+    try {
+        const { db, collection, addDoc, serverTimestamp, auth } = await import('./auth.js');
+        if (!auth.currentUser) return;
+        
+        await addDoc(collection(db, 'audit_logs'), {
+            action: action,
+            userEmail: auth.currentUser.email,
+            userName: auth.currentUser.displayName || 'Unknown',
+            timestamp: serverTimestamp(),
+            details: details
+        });
+    } catch (error) {
+        console.error("Failed to write audit log:", error);
+    }
 }
 
 function saveData() {
-    localStorage.setItem("erp_transactions", JSON.stringify(transactions));
+    // No-op. Data is now saved directly to Firestore via specific functions.
 }
 
 function safeCreateIcons() {
@@ -135,7 +90,8 @@ const viewsMap = {
     'clients': { title: 'Clients Directory', subtitle: 'Manage company clients, fixed retainers, and billing configurations.' },
     'billing': { title: 'Billing Ledger', subtitle: 'Track and process monthly fixed retainers and commission invoices.' },
     'calculator': { title: 'Commission Calculator', subtitle: 'Calculate dynamic performance billing and log invoice records.' },
-    'invoice-viewer': { title: 'Invoice Hub', subtitle: 'View, export, and print client invoices.' }
+    'invoice-viewer': { title: 'Invoice Hub', subtitle: 'View, export, and print client invoices.' },
+    'audit-logs': { title: 'System Audit Trail', subtitle: 'Immutable log of all system actions and approvals.' }
 };
 
 function switchTab(targetId) {
@@ -170,6 +126,8 @@ function switchTab(targetId) {
         renderBillingLedger();
     } else if (targetId === 'calculator') {
         resetCalculator();
+    } else if (targetId === 'audit-logs') {
+        if (window.loadAuditLogs) window.loadAuditLogs();
     }
 
     // Recalculate icons
@@ -782,49 +740,57 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
         billingFields = { billingModel, retainerRate, commissionPercent, commissionBase };
     }
 
-    if (id) {
-        // Edit Mode
-        const index = clients.findIndex(c => c.id === id);
-        if (index !== -1) {
-            clients[index] = {
-                ...clients[index],
-                name, contactName, status, email, phone,
-                ...billingFields
-            };
-        }
-    } else {
-        // Add Mode
-        const newClient = {
-            id: generateId('c'),
-            name, contactName, status, email, phone,
-            ...billingFields,
-            startDate: new Date().toISOString().split('T')[0]
-        };
-        
-        // If it's a new client and billing fields are configured, initialize a default LOB list
-        if (billingModel) {
-            newClient.lobs = [
-                {
-                    name: "Core",
-                    billingModel: billingModel,
-                    totalRetainer: billingModel === 'Commission' ? 0 : (billingFields.retainerRate || 0),
-                    fixedSharePercent: billingModel === 'Hybrid' ? 50 : 100,
-                    variableSharePercent: billingModel === 'Hybrid' ? 50 : 0,
-                    commissionPercent: billingFields.commissionPercent || 0,
-                    commissionBase: billingFields.commissionBase || "Revenue"
+    // Async Firestore operations
+    import('./auth.js').then(async ({ db, doc, setDoc, deleteDoc }) => {
+        try {
+            if (id) {
+                // Edit Mode
+                const index = clients.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    clients[index] = {
+                        ...clients[index],
+                        name, contactName, status, email, phone,
+                        ...billingFields
+                    };
+                    // Update in Firestore
+                    const clientRef = doc(db, 'clients', id);
+                    await setDoc(clientRef, clients[index]);
                 }
-            ];
-        } else {
-            newClient.lobs = [];
-        }
-        
-        clients.push(newClient);
-    }
+            } else {
+                // Add Mode
+                const newId = generateId('c');
+                const newClient = {
+                    name, contactName, status, email, phone,
+                    ...billingFields,
+                    startDate: new Date().toISOString().split('T')[0],
+                    lobs: billingModel ? [{
+                        name: "Core",
+                        billingModel: billingModel,
+                        totalRetainer: billingModel === 'Commission' ? 0 : (billingFields.retainerRate || 0),
+                        fixedSharePercent: billingModel === 'Hybrid' ? 50 : 100,
+                        variableSharePercent: billingModel === 'Hybrid' ? 50 : 0,
+                        commissionPercent: billingFields.commissionPercent || 0,
+                        commissionBase: billingFields.commissionBase || "Revenue"
+                    }] : []
+                };
+                
+                // Update in Firestore
+                const clientRef = doc(db, 'clients', newId);
+                await setDoc(clientRef, newClient);
+                
+                // Update local state
+                newClient.id = newId;
+                clients.push(newClient);
+            }
 
-    saveData();
-    closeClientModal();
-    renderClients();
-    populateDropdowns();
+            closeClientModal();
+            renderClients();
+            populateDropdowns();
+        } catch (error) {
+            console.error("Error saving client:", error);
+            alert("Failed to save client. Check console for details.");
+        }
+    });
 });
 
 // Edit Client Action
@@ -854,10 +820,17 @@ window.editClient = function(id) {
 // Delete Client Action
 window.deleteClient = function(id) {
     if (confirm("Are you sure you want to delete this client? All billing summaries remain but configurations are removed.")) {
-        clients = clients.filter(c => c.id !== id);
-        saveData();
-        renderClients();
-        populateDropdowns();
+        import('./auth.js').then(async ({ db, doc, deleteDoc }) => {
+            try {
+                await deleteDoc(doc(db, 'clients', id));
+                clients = clients.filter(c => c.id !== id);
+                renderClients();
+                populateDropdowns();
+            } catch (error) {
+                console.error("Error deleting client:", error);
+                alert("Failed to delete client.");
+            }
+        });
     }
 };
 
@@ -868,8 +841,8 @@ document.getElementById('search-clients').addEventListener('input', (e) => {
 
 
 // --- BILLING LEDGER CONTROLLER ---
-function renderBillingLedger() {
-    initData();
+async function renderBillingLedger() {
+    // We don't call initData() here anymore because it's called on load and transactions are updated locally and in Firestore
     const tableBody = document.querySelector('#billing-ledger-table tbody');
     tableBody.innerHTML = '';
 
@@ -891,14 +864,19 @@ function renderBillingLedger() {
     filteredTransactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     filteredTransactions.forEach(t => {
-        const statusBadgeClass = t.status === 'Paid' ? 'badge-success' : 'badge-warning';
+        let statusBadgeClass = 'badge-warning';
+        if (t.status === 'Paid' || t.status === 'Approved') statusBadgeClass = 'badge-success';
+        if (t.status === 'Rejected') statusBadgeClass = 'badge-danger';
         
         let basisValDesc = "-";
         if (t.variableBaseAmount > 0) {
-            // Find base model from client definition or log
             basisValDesc = `${formatCurrency(t.variableBaseAmount)}`;
         }
 
+        const isPending = t.status === 'Pending Approval';
+        // Only Admin and Commercial can approve/reject
+        const canApprove = window.currentUserRole === 'admin' || window.currentUserRole === 'commercial';
+        
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong>${t.poNumber ? `<div class="text-muted small" style="font-size: 11px; margin-top: 2px;">PO: ${t.poNumber}</div>` : ''}</td>
@@ -914,6 +892,14 @@ function renderBillingLedger() {
                     <button class="btn btn-sm btn-secondary" onclick="viewInvoice('${t.id}')" style="cursor: pointer;">
                         <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View
                     </button>
+                    ${isPending && canApprove ? `
+                        <button class="btn btn-sm btn-success" onclick="approveTransaction('${t.id}')" style="cursor: pointer; background-color: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2);">
+                            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Approve
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="rejectTransaction('${t.id}')" style="cursor: pointer; background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2);">
+                            <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i> Reject
+                        </button>
+                    ` : ''}
                     <button class="btn-icon delete" onclick="deleteTransaction('${t.id}')" title="Delete record" style="cursor: pointer;" data-role-required="admin">
                         <i data-lucide="trash-2"></i>
                     </button>
@@ -925,6 +911,38 @@ function renderBillingLedger() {
 
     safeCreateIcons();
 }
+
+window.approveTransaction = function(id) {
+    if (confirm("Approve this billing transaction?")) {
+        updateTransactionStatus(id, 'Approved');
+    }
+};
+
+window.rejectTransaction = function(id) {
+    if (confirm("Reject this billing transaction?")) {
+        updateTransactionStatus(id, 'Rejected');
+    }
+};
+
+window.updateTransactionStatus = function(id, newStatus) {
+    import('./auth.js').then(async ({ db, doc, updateDoc }) => {
+        try {
+            const txRef = doc(db, 'transactions', id);
+            await updateDoc(txRef, { status: newStatus });
+            
+            const idx = transactions.findIndex(t => t.id === id);
+            if (idx !== -1) transactions[idx].status = newStatus;
+            
+            await logAuditAction(`TRANSACTION_${newStatus.toUpperCase()}`, `Transaction ${id} was ${newStatus}.`);
+            
+            renderBillingLedger();
+            populateDashboardMetrics();
+        } catch (error) {
+            console.error("Failed to update status:", error);
+            alert("Failed to update status.");
+        }
+    });
+};
 
 // Mark Transaction Status as Paid
 window.markAsPaid = function(id) {
@@ -1416,7 +1434,6 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
     }
 
     const newTx = {
-        id: generateId('t'),
         clientId: client.id,
         clientName: client.name,
         lobName: lob.name,
@@ -1431,16 +1448,29 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
         variableBaseAmount: baseVal,
         kpiAchievement: lob.billingModel === 'SplitRetainer' && billType === 'Variable' ? kpiVal : null,
         totalAmount: total,
-        status: "Billing Initiated", // Set as initiated for new records
+        status: "Pending Approval", // New requirement: Status is Pending Approval
         dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // 10 days due
     };
 
-    transactions.push(newTx);
-    saveData();
-    closeBillingModal();
-    
-    // Redirect to billing list
-    switchTab('billing');
+    import('./auth.js').then(async ({ db, collection, addDoc, doc, setDoc }) => {
+        try {
+            const newId = generateId('t');
+            const txRef = doc(db, 'transactions', newId);
+            const txData = { id: newId, ...newTx };
+            await setDoc(txRef, txData);
+            
+            transactions.push(txData);
+            
+            await logAuditAction('CREATE_BILLING', `Created billing transaction for ${client.name} (${formatCurrency(total)})`);
+            
+            closeBillingModal();
+            // Redirect to billing list
+            switchTab('billing');
+        } catch (error) {
+            console.error("Error creating billing transaction:", error);
+            alert("Failed to log billing transaction.");
+        }
+    });
 });
 
 
@@ -1830,8 +1860,51 @@ window.viewInvoice = function(transactionId) {
 };
 
 
+// --- AUDIT LOGS CONTROLLER ---
+window.loadAuditLogs = async function() {
+    try {
+        const { db, collection, getDocs, query, orderBy } = await import('./auth.js');
+        const logsRef = collection(db, 'audit_logs');
+        const q = query(logsRef, orderBy('timestamp', 'desc'));
+        const querySnapshot = await getDocs(q);
+        
+        const tableBody = document.querySelector('#audit-logs-table tbody');
+        tableBody.innerHTML = '';
+        
+        if (querySnapshot.empty) {
+            tableBody.innerHTML = `<tr><td colspan="4" class="text-muted" style="text-align:center; padding: 32px;">No audit logs found.</td></tr>`;
+            return;
+        }
+        
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            let dateStr = 'Pending...';
+            if (data.timestamp) {
+                dateStr = data.timestamp.toDate().toLocaleString('en-IN');
+            }
+            
+            let actionBadge = 'badge-secondary';
+            if (data.action.includes('CREATE')) actionBadge = 'badge-success';
+            if (data.action.includes('REJECT') || data.action.includes('DELETE')) actionBadge = 'badge-danger';
+            if (data.action.includes('APPROVE')) actionBadge = 'badge-success';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td style="font-size: 13px; color: var(--text-secondary);">${dateStr}</td>
+                <td><strong>${data.userName}</strong><br><span style="font-size: 11px; color: var(--text-secondary);">${data.userEmail}</span></td>
+                <td><span class="badge ${actionBadge}">${data.action}</span></td>
+                <td style="font-size: 14px;">${data.details}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error loading audit logs:", error);
+    }
+};
+
+
 // --- INITIAL STARTUP ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     // Current date on topbar
     const dateSpan = document.getElementById('current-date');
     if (dateSpan) {
@@ -1849,7 +1922,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     console.log("KK ERP Loaded - v1.1.18");
-    initData();
+    await initData();
     populateDropdowns();
     switchTab('dashboard'); // Start on Dashboard
 });
