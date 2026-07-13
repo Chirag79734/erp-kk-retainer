@@ -1597,11 +1597,11 @@ function runTrackerLookup() {
     } else {
         if (tableFoot) {
             tableFoot.innerHTML = `
-                <tr style="background-color: var(--bg-surface); border-top: 2px solid var(--border-color);">
-                    <td colspan="2" style="text-align: right; font-weight: 700; color: var(--text-primary); font-size: 15px; padding: 15px 10px; letter-spacing: 0.5px;">GRAND TOTAL</td>
-                    <td style="font-weight: 600; color: var(--text-primary); font-size: 15px; padding: 15px 10px;">${formatCurrency(totalFixed)}</td>
-                    <td style="font-weight: 600; color: var(--text-primary); font-size: 15px; padding: 15px 10px;">${formatCurrency(totalVariable)}</td>
-                    <td style="font-weight: 800; color: var(--success); font-size: 16px; padding: 15px 10px;">${formatCurrency(totalFixed + totalVariable)}</td>
+                <tr style="background-color: rgba(99, 102, 241, 0.08); border-top: 2px solid var(--primary); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);">
+                    <td colspan="2" style="text-align: right; font-weight: 800; color: var(--primary); font-size: 16px; padding: 18px 15px; letter-spacing: 0.5px; text-transform: uppercase;">GRAND TOTAL</td>
+                    <td style="font-weight: 700; color: #fff; font-size: 16px; padding: 18px 10px;">${formatCurrency(totalFixed)}</td>
+                    <td style="font-weight: 700; color: #fff; font-size: 16px; padding: 18px 10px;">${formatCurrency(totalVariable)}</td>
+                    <td style="font-weight: 900; color: var(--success); font-size: 18px; padding: 18px 10px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);">${formatCurrency(totalFixed + totalVariable)}</td>
                 </tr>
             `;
         }
