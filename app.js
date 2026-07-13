@@ -320,39 +320,47 @@ function renderClients(filterQuery = '') {
         let modelBadgeClass = "";
         let isWaiting = false;
 
-        if (c.name === "Airtel") {
-            billingModelStr = "Retainer/Commission";
-            commissionDetail = "Fixed+Variable";
-            modelBadgeClass = "badge-success";
-        } else if (c.name === "ITC Hotels") {
-            billingModelStr = "Retainer";
-            commissionDetail = "Fixed+Variable";
-            modelBadgeClass = "badge-info";
-        } else if (c.name === "Emami" || c.name === "TCPL") {
-            billingModelStr = "waiting for finalized commercial";
-            commissionDetail = "waiting for finalized commercial";
-            isWaiting = true;
-        } else {
-            // Fallback for new clients
-            const models = c.lobs ? [...new Set(c.lobs.map(lob => lob.billingModel))] : [];
-            billingModelStr = models.join(' / ') || 'Retainer';
-            modelBadgeClass = 'badge-success';
-            if (billingModelStr === 'Retainer') modelBadgeClass = 'badge-info';
-            if (billingModelStr === 'Commission') modelBadgeClass = 'badge-warning';
-
-            const commissionParts = [];
-            if (c.lobs) {
-                c.lobs.forEach(lob => {
-                    if (lob.billingModel === 'Commission') {
-                        commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
-                    } else if (lob.billingModel === 'Hybrid') {
-                        commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
-                    } else if (lob.billingModel === 'SplitRetainer' && lob.variableSharePercent > 0) {
-                        commissionParts.push(`${lob.variableSharePercent}% Var (${lob.variableMetric})`);
-                    }
-                });
+        if (c.billingModel) {
+            billingModelStr = c.billingModel;
+            modelBadgeClass = billingModelStr === 'Commission' ? 'badge-warning' : (billingModelStr === 'Retainer' ? 'badge-info' : 'badge-success');
+            if (billingModelStr === 'Commission' || billingModelStr === 'Hybrid' || billingModelStr === 'Fixed+Variable') {
+                commissionDetail = `${c.commissionPercent || 0}% on ${c.commissionBase || 'None'}`;
+            } else {
+                commissionDetail = '-';
             }
-            commissionDetail = commissionParts.length > 0 ? commissionParts.join(' + ') : '-';
+        } else {
+            // Fallback for legacy clients without explicit client-level billingModel
+            if (c.name === "Airtel") {
+                billingModelStr = "Retainer/Commission";
+                commissionDetail = "Fixed+Variable";
+                modelBadgeClass = "badge-success";
+            } else if (c.name === "ITC Hotels") {
+                billingModelStr = "Retainer";
+                commissionDetail = "Fixed+Variable";
+                modelBadgeClass = "badge-info";
+            } else if (c.name === "Emami" || c.name === "TCPL") {
+                billingModelStr = "waiting for finalized commercial";
+                commissionDetail = "waiting for finalized commercial";
+                isWaiting = true;
+            } else {
+                const models = c.lobs ? [...new Set(c.lobs.map(lob => lob.billingModel))] : [];
+                billingModelStr = models.join(' / ') || 'Retainer';
+                modelBadgeClass = 'badge-success';
+                if (billingModelStr === 'Retainer') modelBadgeClass = 'badge-info';
+                if (billingModelStr === 'Commission') modelBadgeClass = 'badge-warning';
+
+                const commissionParts = [];
+                if (c.lobs) {
+                    c.lobs.forEach(lob => {
+                        if (lob.billingModel === 'Commission' || lob.billingModel === 'Hybrid') {
+                            commissionParts.push(`${lob.commissionPercent}% on ${lob.commissionBase}`);
+                        } else if (lob.billingModel === 'SplitRetainer' && lob.variableSharePercent > 0) {
+                            commissionParts.push(`${lob.variableSharePercent}% Var (${lob.variableMetric})`);
+                        }
+                    });
+                }
+                commissionDetail = commissionParts.length > 0 ? commissionParts.join(' + ') : '-';
+            }
         }
 
         // Calculate total fixed retainer budget portion
