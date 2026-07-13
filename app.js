@@ -1585,138 +1585,94 @@ document.getElementById('full-calculator-form').addEventListener('submit', (e) =
 // --- DASHBOARD MINI LOOKUP & ESTIMATOR CONTROLLER ---
 document.getElementById('mini-calc-client').addEventListener('change', (e) => {
     const clientId = e.target.value;
-    const buSelect = document.getElementById('mini-calc-bu');
-    const monthInput = document.getElementById('mini-calc-month');
+    const monthFrom = document.getElementById('mini-calc-month-from');
+    const monthTo = document.getElementById('mini-calc-month-to');
     const resultsBox = document.getElementById('mini-calc-results');
 
-    buSelect.innerHTML = `<option value="">Choose BU...</option>`;
-    buSelect.disabled = true;
-    monthInput.disabled = true;
-    monthInput.value = '';
+    monthFrom.disabled = true;
+    monthTo.disabled = true;
+    monthFrom.value = '';
+    monthTo.value = '';
     resultsBox.style.display = 'none';
 
     if (!clientId) return;
 
-    const client = clients.find(c => c.id === clientId);
-    if (!client || !client.lobs) return;
-
-    // Populate Business Units dropdown
-    client.lobs.forEach(lob => {
-        const opt = document.createElement('option');
-        opt.value = lob.name;
-        opt.textContent = lob.name;
-        buSelect.appendChild(opt);
-    });
-
-    buSelect.disabled = false;
-});
-
-document.getElementById('mini-calc-bu').addEventListener('change', (e) => {
-    const buName = e.target.value;
-    const monthInput = document.getElementById('mini-calc-month');
-    const resultsBox = document.getElementById('mini-calc-results');
-
-    resultsBox.style.display = 'none';
-
-    if (!buName) {
-        monthInput.disabled = true;
-        monthInput.value = '';
-        return;
-    }
-
-    monthInput.disabled = false;
+    monthFrom.disabled = false;
+    monthTo.disabled = false;
     
     // Auto populate with current month if empty
-    if (!monthInput.value) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        monthInput.value = `${year}-${month}`;
-    }
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    monthFrom.value = `${year}-${month}`;
+    monthTo.value = `${year}-${month}`;
 
     runMiniLookup();
 });
 
-document.getElementById('mini-calc-month').addEventListener('input', runMiniLookup);
+document.getElementById('mini-calc-month-from').addEventListener('input', runMiniLookup);
+document.getElementById('mini-calc-month-to').addEventListener('input', runMiniLookup);
 
 function runMiniLookup() {
     const clientId = document.getElementById('mini-calc-client').value;
-    const buName = document.getElementById('mini-calc-bu').value;
-    const monthVal = document.getElementById('mini-calc-month').value;
+    const monthFromVal = document.getElementById('mini-calc-month-from').value;
+    const monthToVal = document.getElementById('mini-calc-month-to').value;
     const resultsBox = document.getElementById('mini-calc-results');
 
-    if (!clientId || !buName || !monthVal) {
+    if (!clientId || !monthFromVal || !monthToVal) {
         resultsBox.style.display = 'none';
         return;
     }
 
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return;
+    if (monthFromVal > monthToVal) {
+        resultsBox.style.display = 'none';
+        return;
+    }
 
-    const bu = client.lobs.find(l => l.name === buName);
-    if (!bu) return;
+    // Generate list of formatted months between From and To
+    const start = new Date(monthFromVal + "-01");
+    // Ensure we handle timezones correctly by using UTC Date logic or simple year/month math
+    const startYear = parseInt(monthFromVal.split('-')[0]);
+    const startMonth = parseInt(monthFromVal.split('-')[1]) - 1;
+    const endYear = parseInt(monthToVal.split('-')[0]);
+    const endMonth = parseInt(monthToVal.split('-')[1]) - 1;
 
-    // Parse month (YYYY-MM to "Month Name YYYY")
-    const monthParts = monthVal.split('-');
-    const year = monthParts[0];
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const monthIndex = parseInt(monthParts[1]) - 1;
-    const formattedMonth = `${monthNames[monthIndex]} ${year}`;
+    const targetMonths = [];
+    
+    let curY = startYear;
+    let curM = startMonth;
 
-    // Find existing transaction in ledger
-    const existingTx = transactions.find(t => 
-        t.clientId === clientId && 
-        t.lobName === buName && 
-        t.billingMonth === formattedMonth
-    );
+    while (curY < endYear || (curY === endYear && curM <= endMonth)) {
+        targetMonths.push(`${monthNames[curM]} ${curY}`);
+        curM++;
+        if (curM > 11) {
+            curM = 0;
+            curY++;
+        }
+    }
 
-    const statusBadge = document.getElementById('mini-res-status');
+    let totalFixed = 0;
+    let totalVariable = 0;
+
+    // Filter transactions for this client, within the target months, that are APPROVED or PAID
+    transactions.forEach(t => {
+        if (t.clientId === clientId && targetMonths.includes(t.billingMonth)) {
+            const st = (t.status || '').toUpperCase();
+            if (st === 'APPROVED' || st === 'PAID') {
+                totalFixed += (t.retainerAmount || 0);
+                totalVariable += (t.commissionAmount || 0);
+            }
+        }
+    });
+
     const resFixed = document.getElementById('mini-res-fixed');
     const resVariable = document.getElementById('mini-res-variable');
     const resTotal = document.getElementById('mini-res-total');
 
-    if (existingTx) {
-        // Already Billed state
-        statusBadge.textContent = `BILLED (${existingTx.status.toUpperCase()})`;
-        statusBadge.className = existingTx.status === 'Paid' ? 'badge badge-success' : 'badge badge-warning';
-        statusBadge.style.backgroundColor = '';
-        statusBadge.style.color = '';
-
-        resFixed.textContent = formatCurrency(existingTx.retainerAmount);
-        resVariable.textContent = formatCurrency(existingTx.commissionAmount);
-        resTotal.textContent = formatCurrency(existingTx.totalAmount);
-    } else {
-        // Not Billed state - Calculate config targets
-        statusBadge.textContent = "NOT YET BILLED";
-        statusBadge.className = "badge";
-        statusBadge.style.backgroundColor = "rgba(156, 163, 175, 0.15)";
-        statusBadge.style.color = "#9ca3af";
-
-        let fixedAmt = 0;
-        let variableAmt = 0;
-
-        if (bu.billingModel === 'SplitRetainer') {
-            fixedAmt = bu.fixedAmount !== undefined ? bu.fixedAmount : bu.totalRetainer * (bu.fixedSharePercent / 100);
-            variableAmt = bu.variableAmount !== undefined ? bu.variableAmount : bu.totalRetainer * (bu.variableSharePercent / 100);
-        } else if (bu.billingModel === 'Retainer') {
-            fixedAmt = bu.totalRetainer;
-            variableAmt = 0;
-        } else if (bu.billingModel === 'Hybrid') {
-            fixedAmt = bu.totalRetainer;
-            variableAmt = 0; // commission is ad-hoc base metric dependent
-        } else if (bu.billingModel === 'Commission') {
-            fixedAmt = 0;
-            variableAmt = 0;
-        }
-
-        resFixed.textContent = formatCurrency(fixedAmt);
-        resVariable.textContent = bu.billingModel === 'SplitRetainer' 
-            ? `${formatCurrency(variableAmt)} (Max Potential)` 
-            : (bu.billingModel === 'Retainer' ? '₹0' : 'Commission Dynamic');
-        resTotal.textContent = bu.billingModel === 'SplitRetainer'
-            ? `${formatCurrency(fixedAmt + variableAmt)} (Max Potential)`
-            : formatCurrency(fixedAmt);
-    }
+    resFixed.textContent = formatCurrency(totalFixed);
+    resVariable.textContent = formatCurrency(totalVariable);
+    resTotal.textContent = formatCurrency(totalFixed + totalVariable);
 
     resultsBox.style.display = 'block';
 }

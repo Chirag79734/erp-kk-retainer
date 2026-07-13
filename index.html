@@ -194,21 +194,20 @@
                                         <option value="">Choose Client...</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
-                                    <label for="mini-calc-bu">Business Unit</label>
-                                    <select id="mini-calc-bu" class="form-control" required disabled>
-                                        <option value="">Choose BU...</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="mini-calc-month">Billing Month</label>
-                                    <input type="month" id="mini-calc-month" class="form-control" required disabled>
+                                <div style="display: flex; gap: 12px;">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="mini-calc-month-from">From Month</label>
+                                        <input type="month" id="mini-calc-month-from" class="form-control" required disabled>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label for="mini-calc-month-to">To Month</label>
+                                        <input type="month" id="mini-calc-month-to" class="form-control" required disabled>
+                                    </div>
                                 </div>
                                 
                                 <div class="calc-results-preview" id="mini-calc-results" style="display: none; margin-top: 18px; border-top: 1px dashed var(--border-color); padding-top: 14px;">
                                     <div class="result-row" style="margin-bottom: 8px;">
-                                        <span>Status:</span>
-                                        <span id="mini-res-status" class="badge">NOT YET BILLED</span>
+                                        <span style="font-weight: 600; color: var(--success);">Approved/Paid Totals</span>
                                     </div>
                                     <div class="result-row">
                                         <span>Fixed Retainer:</span>
