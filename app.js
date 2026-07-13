@@ -356,10 +356,10 @@ function renderClients(filterQuery = '') {
         }
 
         // Calculate total fixed retainer budget portion
-        let totalFixedRetainer = 0;
-        let totalVariableRetainer = 0;
+        let totalFixedRetainer = c.retainerRate !== undefined ? parseFloat(c.retainerRate) : undefined;
+        let totalVariableRetainer = c.variableRetainerRate !== undefined ? parseFloat(c.variableRetainerRate) : undefined;
         
-        if (c.lobs && c.lobs.length > 0) {
+        if (totalFixedRetainer === undefined && c.lobs && c.lobs.length > 0) {
             totalFixedRetainer = c.lobs.reduce((sum, lob) => {
                 if (lob.billingModel === 'SplitRetainer') {
                     return sum + (lob.fixedAmount !== undefined ? lob.fixedAmount : (lob.totalRetainer * (lob.fixedSharePercent / 100)));
@@ -368,16 +368,19 @@ function renderClients(filterQuery = '') {
                 }
                 return sum;
             }, 0);
+        }
+        
+        if (totalVariableRetainer === undefined && c.lobs && c.lobs.length > 0) {
             totalVariableRetainer = c.lobs.reduce((sum, lob) => {
                 if (lob.billingModel === 'SplitRetainer') {
                     return sum + (lob.variableAmount !== undefined ? lob.variableAmount : (lob.totalRetainer * (lob.variableSharePercent / 100)));
                 }
                 return sum;
             }, 0);
-        } else {
-            totalFixedRetainer = c.retainerRate || 0;
-            totalVariableRetainer = c.variableRetainerRate || 0;
         }
+
+        totalFixedRetainer = totalFixedRetainer || 0;
+        totalVariableRetainer = totalVariableRetainer || 0;
 
         let statusClass = 'status-active';
         if (c.status === 'Upcoming') statusClass = 'status-upcoming';
