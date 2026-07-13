@@ -1579,7 +1579,7 @@ function runTrackerLookup() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${t.billingMonth}</td>
-                    <td><strong>${t.id}</strong></td>
+                    <td><strong>${t.invoiceNumber ? t.invoiceNumber : `#${t.id.toUpperCase()}`}</strong></td>
                     <td>${formatCurrency(fixed)}</td>
                     <td>${formatCurrency(variable)}</td>
                     <td><strong style="color: var(--success);">${formatCurrency(total)}</strong></td>
