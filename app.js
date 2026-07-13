@@ -1342,8 +1342,9 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
         alert("Billing entries can only be logged for FY 2026-27 onwards (starting April 2026).");
         return;
     }
-    const dateObj = new Date(rawMonth + "-01");
-    const formattedMonth = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }); // e.g. "July 2026"
+    const monthParts = rawMonth.split('-');
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const formattedMonth = `${monthNames[parseInt(monthParts[1]) - 1]} ${monthParts[0]}`; // e.g. "July 2026"
 
     const baseVal = parseFloat(document.getElementById('log-bill-variable-value').value) || 0;
     const kpiVal = parseFloat(document.getElementById('log-bill-kpi-value').value) || 0;
@@ -1541,8 +1542,9 @@ document.getElementById('btn-calc-calculate').addEventListener('click', () => {
         alert("Calculations can only be performed for FY 2026-27 onwards (starting April 2026).");
         return;
     }
-    const dateObj = new Date(rawMonth + "-01");
-    const formattedMonth = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long' }); // e.g. "July 2026"
+    const monthParts = rawMonth.split('-');
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const formattedMonth = `${monthNames[parseInt(monthParts[1]) - 1]} ${monthParts[0]}`; // e.g. "July 2026"
 
     // Find actual transactions logged for this client and month
     const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === formattedMonth);
