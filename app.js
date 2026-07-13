@@ -149,10 +149,13 @@ function renderDashboard() {
     let outstandingBilling = 0;
 
     transactions.forEach(t => {
-        totalBilling += t.totalAmount;
-        totalRetainers += t.retainerAmount;
-        totalCommissions += t.commissionAmount;
-        if (t.status === 'Billing Initiated' || t.status === 'Pending') {
+        const st = (t.status || '').toUpperCase();
+        if (st === 'APPROVED' || st === 'PAID') {
+            totalBilling += t.totalAmount;
+            totalRetainers += t.retainerAmount;
+            totalCommissions += t.commissionAmount;
+        }
+        if (st === 'PENDING APPROVAL' || st === 'PENDING' || st === 'BILLING INITIATED') {
             outstandingBilling += t.totalAmount;
         }
     });
@@ -501,8 +504,11 @@ function updateWorkspaceMetrics(clientId) {
     const monthlyRetainer = client.lobs ? client.lobs.reduce((sum, lob) => sum + (lob.totalRetainer || 0), 0) : 0;
     document.getElementById('ws-kpi-retainer').textContent = formatCurrency(monthlyRetainer);
 
-    // Calculate metrics cumulatively starting from April 2026 onwards (FY 2026-27)
-    const clientTxs = transactions.filter(t => t.clientId === clientId && t.date >= "2026-04-01");
+    // Calculate metrics cumulatively starting from April 2026 onwards (FY 2026-27), only for APPROVED transactions
+    const clientTxs = transactions.filter(t => {
+        const st = (t.status || '').toUpperCase();
+        return t.clientId === clientId && t.date >= "2026-04-01" && (st === 'APPROVED' || st === 'PAID');
+    });
 
     // 2. Total Fixed Billed (sum of all fixed retainer amounts logged from Apr 2026 onwards)
     const totalFixedBilled = clientTxs.reduce((sum, t) => sum + (t.retainerAmount || 0), 0);
