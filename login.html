@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
         :root {
@@ -132,20 +133,39 @@
 </head>
 <body>
 
-    <div class="login-card">
-        <img src="./assets/logo.png" alt="Performics Logo" style="max-width: 200px; margin: 0 auto 20px auto; display: block;">
-        <p>Sign in to access your business billing dashboard.</p>
-        
-        <div class="input-group" style="margin-bottom: 20px; text-align: left;">
-            <label for="email-input" style="display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary);">Email Address</label>
-            <input type="email" id="email-input" placeholder="name@company.com" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 14px; outline: none; box-sizing: border-box;">
-        </div>
+    <div class="login-card" style="padding: 0; overflow: hidden; max-width: 440px;">
+        <div style="padding: 48px 48px 32px 48px;">
+            <img src="./assets/logo.png" alt="Performics Logo" style="max-height: 40px; margin: 0 auto 24px auto; display: block;">
+            
+            <h1 style="font-size: 22px; font-weight: 600; margin-bottom: 12px; font-family: 'Inter', sans-serif;">Access Your Business Dashboard</h1>
+            <p style="font-size: 15px; color: var(--text-secondary); margin-bottom: 24px;">Enter your work email address and we'll<br>send you a secure login link.</p>
+            
+            <div style="width: 32px; height: 2px; background-color: var(--primary); margin: 0 auto 32px auto; border-radius: 2px;"></div>
+            
+            <div class="input-group" style="margin-bottom: 24px; text-align: left;">
+                <label for="email-input" style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--text-primary);">
+                    <i data-lucide="mail" style="width: 16px; height: 16px;"></i> Work Email Address
+                </label>
+                <input type="email" id="email-input" placeholder="name@company.com" style="width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 15px; outline: none; box-sizing: border-box; font-family: 'Inter', sans-serif; color: #000;">
+            </div>
 
-        <button class="google-btn" id="login-btn" style="background: var(--primary); color: white; justify-content: center; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);">
-            Send Login Link
-        </button>
-        <div id="success-message" style="color: var(--success); font-size: 13px; margin-top: 16px; display: none;">Link sent! Check your email inbox.</div>
-        <div id="error-message">Failed to sign in. Please try again.</div>
+            <button class="google-btn" id="login-btn" style="background: var(--primary); color: white; justify-content: center; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25); border-radius: 8px; font-size: 15px; padding: 14px;">
+                <i data-lucide="send" style="width: 18px; height: 18px;"></i> Send Login Link
+            </button>
+            <div id="success-message" style="color: var(--success); font-size: 13px; margin-top: 16px; display: none;">Link sent! Check your email inbox.</div>
+            <div id="error-message">Failed to sign in. Please try again.</div>
+        </div>
+        
+        <!-- Bottom Help Box -->
+        <div style="background-color: #f8fafc; color: #0f111a; padding: 24px 32px; text-align: left; display: flex; align-items: center; gap: 16px;">
+            <div style="background-color: #e0e7ff; color: var(--primary); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <i data-lucide="help-circle" style="width: 20px; height: 20px;"></i>
+            </div>
+            <div>
+                <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">Need help accessing the dashboard?</div>
+                <div style="font-size: 14px; color: #475569;">Please contact <span style="color: var(--primary); font-weight: 600;">David Konghay</span>.</div>
+            </div>
+        </div>
     </div>
 
     <!-- Auth Module -->
@@ -249,6 +269,9 @@
                 loginBtn.innerHTML = 'Send Login Link';
             }
         });
+
+        // Initialize Lucide icons
+        lucide.createIcons();
     </script>
 </body>
 </html>
