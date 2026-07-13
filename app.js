@@ -428,7 +428,7 @@ function renderClients(filterQuery = '') {
                     <button class="btn btn-sm btn-secondary" onclick="viewClientWorkspace('${c.id}')" style="padding: 4px 8px; font-size: 11px; display: flex; align-items: center; gap: 4px; border-radius: 4px; border: 1px solid var(--border-color); background-color: var(--bg-app); color: var(--text-secondary); cursor: pointer;">
                         <i data-lucide="eye" style="width: 12px; height: 12px;"></i> View Details
                     </button>
-                    <button class="btn-icon edit" onclick="editClient('${c.id}')" title="Edit Client Configuration" data-role-required="admin">
+                    <button class="btn-icon edit" onclick="editClient('${c.id}')" title="Edit Client Configuration" data-role-required="admin,commercial">
                         <i data-lucide="edit-3"></i>
                     </button>
                     <button class="btn-icon delete" onclick="deleteClient('${c.id}')" title="Remove Client" data-role-required="admin">
@@ -741,6 +741,7 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
                     // Update in Firestore
                     const clientRef = doc(db, 'clients', id);
                     await setDoc(clientRef, clients[index]);
+                    await logAuditAction('EDIT_CLIENT', `Client ${name} configuration updated`);
                 }
             } else {
                 // Add Mode
@@ -763,6 +764,7 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
                 // Update in Firestore
                 const clientRef = doc(db, 'clients', newId);
                 await setDoc(clientRef, newClient);
+                await logAuditAction('ADD_CLIENT', `New client ${name} added`);
                 
                 // Update local state
                 newClient.id = newId;
@@ -811,10 +813,13 @@ window.editClient = function(id) {
 
 // Delete Client Action
 window.deleteClient = function(id) {
+    const client = clients.find(c => c.id === id);
+    const clientName = client ? client.name : id;
     if (confirm("Are you sure you want to delete this client? All billing summaries remain but configurations are removed.")) {
         import('./auth.js').then(async ({ db, doc, deleteDoc }) => {
             try {
                 await deleteDoc(doc(db, 'clients', id));
+                await logAuditAction('DELETE_CLIENT', `Client ${clientName} deleted`);
                 clients = clients.filter(c => c.id !== id);
                 renderClients();
                 populateDropdowns();
