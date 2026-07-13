@@ -646,17 +646,25 @@ document.getElementById('client-model').addEventListener('change', (e) => {
 
 function toggleClientBillingFields(model) {
     const retainerGroup = document.getElementById('cfg-retainer-group');
+    const variableGroup = document.getElementById('cfg-variable-retainer-group');
     const commissionGroup = document.getElementById('cfg-commission-group');
     
     if (model === 'Retainer') {
         retainerGroup.style.display = 'block';
+        if (variableGroup) variableGroup.style.display = 'none';
         commissionGroup.style.display = 'none';
     } else if (model === 'Commission') {
         retainerGroup.style.display = 'none';
+        if (variableGroup) variableGroup.style.display = 'none';
         commissionGroup.style.display = 'block';
     } else if (model === 'Hybrid' || model === 'Fixed+Variable') {
         retainerGroup.style.display = 'block';
+        if (variableGroup) variableGroup.style.display = 'block';
         commissionGroup.style.display = 'block';
+    } else {
+        retainerGroup.style.display = 'none';
+        if (variableGroup) variableGroup.style.display = 'none';
+        commissionGroup.style.display = 'none';
     }
 }
 
@@ -680,17 +688,22 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
     let billingFields = {};
     if (billingModel) {
         let retainerRate = 0;
+        let variableRetainerRate = 0;
         let commissionPercent = 0;
         let commissionBase = "None";
         
         if (billingModel === 'Retainer' || billingModel === 'Hybrid' || billingModel === 'Fixed+Variable') {
             retainerRate = parseFloat(document.getElementById('client-retainer-rate').value) || 0;
+            const varInput = document.getElementById('client-variable-retainer-rate');
+            if (varInput) {
+                variableRetainerRate = parseFloat(varInput.value) || 0;
+            }
         }
         if (billingModel === 'Commission' || billingModel === 'Hybrid' || billingModel === 'Fixed+Variable') {
             commissionPercent = parseFloat(document.getElementById('client-commission-percent').value) || 0;
             commissionBase = document.getElementById('client-commission-base').value;
         }
-        billingFields = { billingModel, retainerRate, commissionPercent, commissionBase };
+        billingFields = { billingModel, retainerRate, variableRetainerRate, commissionPercent, commissionBase };
     }
 
     // Async Firestore operations
@@ -764,6 +777,12 @@ window.editClient = function(id) {
     toggleClientBillingFields(modelVal);
     
     document.getElementById('client-retainer-rate').value = client.retainerRate !== undefined ? client.retainerRate : "";
+    
+    const varInput = document.getElementById('client-variable-retainer-rate');
+    if (varInput) {
+        varInput.value = client.variableRetainerRate !== undefined ? client.variableRetainerRate : "";
+    }
+
     document.getElementById('client-commission-percent').value = client.commissionPercent !== undefined ? client.commissionPercent : "";
     document.getElementById('client-commission-base').value = client.commissionBase || "";
 
