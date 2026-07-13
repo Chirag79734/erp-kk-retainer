@@ -495,6 +495,11 @@
                                         <input type="month" id="tracker-month-to" class="form-control form-control-lg" required disabled>
                                     </div>
                                 </div>
+                                <div class="form-actions" style="margin-top: 20px;">
+                                    <button type="button" id="btn-tracker-search" class="btn btn-primary btn-lg" disabled>
+                                        <i data-lucide="search"></i> Search
+                                    </button>
+                                </div>
                                 
                                 <div class="results-box" id="tracker-results-section" style="display: none; margin-top: 30px;">
                                     <h3>Tracker Summary <span id="tracker-period-label" style="font-size: 14px; font-weight: normal; color: var(--text-secondary); margin-left: 10px;"></span></h3>
@@ -512,6 +517,24 @@
                                             <span>Total Approved Billing</span>
                                             <span id="tracker-res-total">₹0</span>
                                         </div>
+                                    </div>
+                                    
+                                    <div class="tracker-table-container" style="margin-top: 30px;">
+                                        <h4 style="margin-bottom: 15px; color: var(--text-primary); font-size: 16px;">Monthly Invoice Breakdown</h4>
+                                        <table class="table" id="tracker-breakdown-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Month</th>
+                                                    <th>Invoice No</th>
+                                                    <th>Approved Fixed</th>
+                                                    <th>Approved Variable</th>
+                                                    <th>Total Amount</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- Populated by JS -->
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </form>

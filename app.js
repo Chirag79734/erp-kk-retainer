@@ -1508,19 +1508,30 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
 
 // --- COMMISSION TRACKER TAB CONTROLLER ---
 
+// --- COMMISSION TRACKER TAB CONTROLLER ---
+
+function validateTrackerInputs() {
+    const clientId = document.getElementById('tracker-client').value;
+    const monthFromVal = document.getElementById('tracker-month-from').value;
+    const monthToVal = document.getElementById('tracker-month-to').value;
+    const searchBtn = document.getElementById('btn-tracker-search');
+
+    if (clientId && monthFromVal && monthToVal && monthFromVal <= monthToVal) {
+        searchBtn.disabled = false;
+    } else {
+        searchBtn.disabled = true;
+    }
+}
+
 function runTrackerLookup() {
     const clientId = document.getElementById('tracker-client').value;
     const monthFromVal = document.getElementById('tracker-month-from').value;
     const monthToVal = document.getElementById('tracker-month-to').value;
     const resultsBox = document.getElementById('tracker-results-section');
     const periodLabel = document.getElementById('tracker-period-label');
+    const tableBody = document.querySelector('#tracker-breakdown-table tbody');
 
-    if (!clientId || !monthFromVal || !monthToVal) {
-        resultsBox.style.display = 'none';
-        return;
-    }
-
-    if (monthFromVal > monthToVal) {
+    if (!clientId || !monthFromVal || !monthToVal || monthFromVal > monthToVal) {
         resultsBox.style.display = 'none';
         return;
     }
@@ -1548,17 +1559,39 @@ function runTrackerLookup() {
 
     let totalFixed = 0;
     let totalVariable = 0;
+    
+    tableBody.innerHTML = '';
+    let foundTxs = 0;
 
     // Filter transactions for this client, within the target months, that are APPROVED or PAID
     transactions.forEach(t => {
         if (t.clientId === clientId && targetMonths.includes(t.billingMonth)) {
             const st = (t.status || '').toUpperCase();
             if (st === 'APPROVED' || st === 'PAID') {
-                totalFixed += (t.retainerAmount || 0);
-                totalVariable += (t.commissionAmount || 0);
+                const fixed = t.retainerAmount || 0;
+                const variable = t.commissionAmount || 0;
+                const total = fixed + variable;
+                
+                totalFixed += fixed;
+                totalVariable += variable;
+                
+                foundTxs++;
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${t.billingMonth}</td>
+                    <td><strong>${t.id}</strong></td>
+                    <td>${formatCurrency(fixed)}</td>
+                    <td>${formatCurrency(variable)}</td>
+                    <td><strong style="color: var(--success);">${formatCurrency(total)}</strong></td>
+                `;
+                tableBody.appendChild(row);
             }
         }
     });
+    
+    if (foundTxs === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding: 20px;">No approved invoices found for this period.</td></tr>`;
+    }
 
     const resFixed = document.getElementById('tracker-res-fixed');
     const resVariable = document.getElementById('tracker-res-variable');
@@ -1583,29 +1616,35 @@ document.getElementById('tracker-client').addEventListener('change', (e) => {
     const monthTo = document.getElementById('tracker-month-to');
     const resultsBox = document.getElementById('tracker-results-section');
 
-    monthFrom.disabled = true;
-    monthTo.disabled = true;
-    monthFrom.value = '';
-    monthTo.value = '';
-    resultsBox.style.display = 'none';
-
-    if (!clientId) return;
+    if (!clientId) {
+        monthFrom.disabled = true;
+        monthTo.disabled = true;
+        monthFrom.value = '';
+        monthTo.value = '';
+        resultsBox.style.display = 'none';
+        validateTrackerInputs();
+        return;
+    }
 
     monthFrom.disabled = false;
     monthTo.disabled = false;
     
-    // Auto populate with current month if empty
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    monthFrom.value = `${year}-${month}`;
-    monthTo.value = `${year}-${month}`;
-
-    runTrackerLookup();
+    if (!monthFrom.value || !monthTo.value) {
+        // Auto populate with current month if empty
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        monthFrom.value = `${year}-${month}`;
+        monthTo.value = `${year}-${month}`;
+    }
+    
+    validateTrackerInputs();
 });
 
-document.getElementById('tracker-month-from').addEventListener('input', runTrackerLookup);
-document.getElementById('tracker-month-to').addEventListener('input', runTrackerLookup);
+document.getElementById('tracker-month-from').addEventListener('input', validateTrackerInputs);
+document.getElementById('tracker-month-to').addEventListener('input', validateTrackerInputs);
+
+document.getElementById('btn-tracker-search').addEventListener('click', runTrackerLookup);
 
 document.getElementById('full-tracker-form').addEventListener('submit', (e) => {
     e.preventDefault();
