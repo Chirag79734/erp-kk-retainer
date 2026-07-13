@@ -228,8 +228,11 @@ function renderBillingAlerts() {
     const pendingAlerts = [];
 
     activeClients.forEach(c => {
-        // Check if there is any logged billing transaction in the current billingMonth
-        const hasBilled = transactions.some(t => t.clientId === c.id && t.billingMonth === currentMonthStr);
+        // Check if there is any valid (non-rejected) logged billing transaction in the current billingMonth
+        const hasBilled = transactions.some(t => {
+            const st = (t.status || '').toUpperCase();
+            return t.clientId === c.id && t.billingMonth === currentMonthStr && st !== 'REJECTED';
+        });
         if (!hasBilled) {
             pendingAlerts.push(c);
         }
