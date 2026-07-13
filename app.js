@@ -356,14 +356,28 @@ function renderClients(filterQuery = '') {
         }
 
         // Calculate total fixed retainer budget portion
-        const totalFixedRetainer = c.lobs ? c.lobs.reduce((sum, lob) => {
-            if (lob.billingModel === 'SplitRetainer') {
-                return sum + (lob.fixedAmount !== undefined ? lob.fixedAmount : (lob.totalRetainer * (lob.fixedSharePercent / 100)));
-            } else if (lob.billingModel === 'Retainer') {
-                return sum + (lob.totalRetainer || 0);
-            }
-            return sum;
-        }, 0) : 0;
+        let totalFixedRetainer = 0;
+        let totalVariableRetainer = 0;
+        
+        if (c.lobs && c.lobs.length > 0) {
+            totalFixedRetainer = c.lobs.reduce((sum, lob) => {
+                if (lob.billingModel === 'SplitRetainer') {
+                    return sum + (lob.fixedAmount !== undefined ? lob.fixedAmount : (lob.totalRetainer * (lob.fixedSharePercent / 100)));
+                } else if (lob.billingModel === 'Retainer' || lob.billingModel === 'Hybrid' || lob.billingModel === 'Fixed+Variable') {
+                    return sum + (lob.totalRetainer || 0);
+                }
+                return sum;
+            }, 0);
+            totalVariableRetainer = c.lobs.reduce((sum, lob) => {
+                if (lob.billingModel === 'SplitRetainer') {
+                    return sum + (lob.variableAmount !== undefined ? lob.variableAmount : (lob.totalRetainer * (lob.variableSharePercent / 100)));
+                }
+                return sum;
+            }, 0);
+        } else {
+            totalFixedRetainer = c.retainerRate || 0;
+            totalVariableRetainer = c.variableRetainerRate || 0;
+        }
 
         let statusClass = 'status-active';
         if (c.status === 'Upcoming') statusClass = 'status-upcoming';
@@ -383,6 +397,7 @@ function renderClients(filterQuery = '') {
             </td>
             <td>${isWaiting ? `<span class="badge" style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-color); text-transform: none; font-size: 11px;">${billingModelStr}</span>` : `<span class="badge ${modelBadgeClass}">${billingModelStr}</span>`}</td>
             <td><strong>${totalFixedRetainer > 0 ? formatCurrency(totalFixedRetainer) : "₹0"}</strong></td>
+            <td><strong>${totalVariableRetainer > 0 ? formatCurrency(totalVariableRetainer) : "₹0"}</strong></td>
             <td>${isWaiting ? `<span class="badge" style="background-color: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border: 1px solid var(--border-color); text-transform: none; font-size: 11px;">${commissionDetail}</span>` : commissionDetail}</td>
             <td>
                 <span class="status-indicator ${statusClass}"></span>
