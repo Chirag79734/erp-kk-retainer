@@ -1589,8 +1589,22 @@ function runTrackerLookup() {
         }
     });
     
+    const tableFoot = document.querySelector('#tracker-breakdown-table tfoot');
+    
     if (foundTxs === 0) {
         tableBody.innerHTML = `<tr><td colspan="5" class="text-center text-muted" style="padding: 20px;">No approved invoices found for this period.</td></tr>`;
+        if (tableFoot) tableFoot.innerHTML = '';
+    } else {
+        if (tableFoot) {
+            tableFoot.innerHTML = `
+                <tr style="background-color: var(--bg-surface); border-top: 2px solid var(--border-color);">
+                    <td colspan="2" style="text-align: right; font-weight: 700; color: var(--text-primary); font-size: 15px; padding: 15px 10px; letter-spacing: 0.5px;">GRAND TOTAL</td>
+                    <td style="font-weight: 600; color: var(--text-primary); font-size: 15px; padding: 15px 10px;">${formatCurrency(totalFixed)}</td>
+                    <td style="font-weight: 600; color: var(--text-primary); font-size: 15px; padding: 15px 10px;">${formatCurrency(totalVariable)}</td>
+                    <td style="font-weight: 800; color: var(--success); font-size: 16px; padding: 15px 10px;">${formatCurrency(totalFixed + totalVariable)}</td>
+                </tr>
+            `;
+        }
     }
 
     const resFixed = document.getElementById('tracker-res-fixed');
