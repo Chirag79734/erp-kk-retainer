@@ -320,10 +320,46 @@ function renderClients(filterQuery = '') {
         let modelBadgeClass = "";
         let isWaiting = false;
 
+        // Calculate total fixed retainer budget portion FIRST
+        let totalFixedRetainer = c.retainerRate !== undefined ? parseFloat(c.retainerRate) : undefined;
+        let totalVariableRetainer = c.variableRetainerRate !== undefined ? parseFloat(c.variableRetainerRate) : undefined;
+        
+        if (totalFixedRetainer === undefined && c.lobs && c.lobs.length > 0) {
+            totalFixedRetainer = c.lobs.reduce((sum, lob) => {
+                if (lob.billingModel === 'SplitRetainer') {
+                    return sum + (lob.fixedAmount !== undefined ? lob.fixedAmount : (lob.totalRetainer * (lob.fixedSharePercent / 100)));
+                } else if (lob.billingModel === 'Retainer' || lob.billingModel === 'Hybrid' || lob.billingModel === 'Fixed+Variable') {
+                    return sum + (lob.totalRetainer || 0);
+                }
+                return sum;
+            }, 0);
+        }
+        
+        if (totalVariableRetainer === undefined && c.lobs && c.lobs.length > 0) {
+            totalVariableRetainer = c.lobs.reduce((sum, lob) => {
+                if (lob.billingModel === 'SplitRetainer') {
+                    return sum + (lob.variableAmount !== undefined ? lob.variableAmount : (lob.totalRetainer * (lob.variableSharePercent / 100)));
+                }
+                return sum;
+            }, 0);
+        }
+
+        totalFixedRetainer = totalFixedRetainer || 0;
+        totalVariableRetainer = totalVariableRetainer || 0;
+
         if (c.billingModel) {
             billingModelStr = c.billingModel;
             modelBadgeClass = billingModelStr === 'Commission' ? 'badge-warning' : (billingModelStr === 'Retainer' ? 'badge-info' : 'badge-success');
-            if (billingModelStr === 'Commission' || billingModelStr === 'Hybrid' || billingModelStr === 'Fixed+Variable') {
+            if (billingModelStr === 'Fixed+Variable') {
+                const total = totalFixedRetainer + totalVariableRetainer;
+                if (total > 0) {
+                    const fixedPct = Math.round((totalFixedRetainer / total) * 100);
+                    const varPct = 100 - fixedPct;
+                    commissionDetail = `${fixedPct}%Fixed+${varPct}%Variable`;
+                } else {
+                    commissionDetail = '-';
+                }
+            } else if (billingModelStr === 'Commission' || billingModelStr === 'Hybrid') {
                 commissionDetail = `${c.commissionPercent || 0}% on ${c.commissionBase || 'None'}`;
             } else {
                 commissionDetail = '-';
@@ -362,33 +398,6 @@ function renderClients(filterQuery = '') {
                 commissionDetail = commissionParts.length > 0 ? commissionParts.join(' + ') : '-';
             }
         }
-
-        // Calculate total fixed retainer budget portion
-        let totalFixedRetainer = c.retainerRate !== undefined ? parseFloat(c.retainerRate) : undefined;
-        let totalVariableRetainer = c.variableRetainerRate !== undefined ? parseFloat(c.variableRetainerRate) : undefined;
-        
-        if (totalFixedRetainer === undefined && c.lobs && c.lobs.length > 0) {
-            totalFixedRetainer = c.lobs.reduce((sum, lob) => {
-                if (lob.billingModel === 'SplitRetainer') {
-                    return sum + (lob.fixedAmount !== undefined ? lob.fixedAmount : (lob.totalRetainer * (lob.fixedSharePercent / 100)));
-                } else if (lob.billingModel === 'Retainer' || lob.billingModel === 'Hybrid' || lob.billingModel === 'Fixed+Variable') {
-                    return sum + (lob.totalRetainer || 0);
-                }
-                return sum;
-            }, 0);
-        }
-        
-        if (totalVariableRetainer === undefined && c.lobs && c.lobs.length > 0) {
-            totalVariableRetainer = c.lobs.reduce((sum, lob) => {
-                if (lob.billingModel === 'SplitRetainer') {
-                    return sum + (lob.variableAmount !== undefined ? lob.variableAmount : (lob.totalRetainer * (lob.variableSharePercent / 100)));
-                }
-                return sum;
-            }, 0);
-        }
-
-        totalFixedRetainer = totalFixedRetainer || 0;
-        totalVariableRetainer = totalVariableRetainer || 0;
 
         let statusClass = 'status-active';
         if (c.status === 'Upcoming') statusClass = 'status-upcoming';
