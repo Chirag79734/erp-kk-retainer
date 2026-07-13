@@ -1005,8 +1005,10 @@ function populateDropdowns() {
     logBillSelect.innerHTML = `<option value="">Choose Client...</option>`;
     
     // Populate full calc dropdown
-    const calcSelect = document.getElementById('calc-client');
-    calcSelect.innerHTML = `<option value="">Select a Client...</option>`;
+    const calcSelect = document.getElementById('tracker-client');
+    if (calcSelect) {
+        calcSelect.innerHTML = `<option value="">Select a Client...</option>`;
+    }
 
     clients.forEach(c => {
         // filter
@@ -1504,141 +1506,108 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
 });
 
 
-// --- COMMISSION CALCULATOR TAB CONTROLLER ---
-function resetCalculator() {
-    document.getElementById('full-calculator-form').reset();
-    document.getElementById('calc-client-config-box').style.display = 'none';
-    document.getElementById('calc-inputs-section').style.display = 'none';
-    document.getElementById('calc-results-section').style.display = 'none';
-    document.getElementById('calc-onboarding-alert').style.display = 'none';
-    document.getElementById('btn-calc-calculate').disabled = false;
-    document.getElementById('btn-calc-save').disabled = true;
+// --- COMMISSION TRACKER TAB CONTROLLER ---
 
-    // Default month selector to current month
-    const now = new Date();
-    const currentMonthVal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    document.getElementById('calc-billing-month').value = currentMonthVal;
+function runTrackerLookup() {
+    const clientId = document.getElementById('tracker-client').value;
+    const monthFromVal = document.getElementById('tracker-month-from').value;
+    const monthToVal = document.getElementById('tracker-month-to').value;
+    const resultsBox = document.getElementById('tracker-results-section');
+    const periodLabel = document.getElementById('tracker-period-label');
+
+    if (!clientId || !monthFromVal || !monthToVal) {
+        resultsBox.style.display = 'none';
+        return;
+    }
+
+    if (monthFromVal > monthToVal) {
+        resultsBox.style.display = 'none';
+        return;
+    }
+
+    // Generate list of formatted months between From and To
+    const startYear = parseInt(monthFromVal.split('-')[0]);
+    const startMonth = parseInt(monthFromVal.split('-')[1]) - 1;
+    const endYear = parseInt(monthToVal.split('-')[0]);
+    const endMonth = parseInt(monthToVal.split('-')[1]) - 1;
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const targetMonths = [];
+    
+    let curY = startYear;
+    let curM = startMonth;
+
+    while (curY < endYear || (curY === endYear && curM <= endMonth)) {
+        targetMonths.push(`${monthNames[curM]} ${curY}`);
+        curM++;
+        if (curM > 11) {
+            curM = 0;
+            curY++;
+        }
+    }
+
+    let totalFixed = 0;
+    let totalVariable = 0;
+
+    // Filter transactions for this client, within the target months, that are APPROVED or PAID
+    transactions.forEach(t => {
+        if (t.clientId === clientId && targetMonths.includes(t.billingMonth)) {
+            const st = (t.status || '').toUpperCase();
+            if (st === 'APPROVED' || st === 'PAID') {
+                totalFixed += (t.retainerAmount || 0);
+                totalVariable += (t.commissionAmount || 0);
+            }
+        }
+    });
+
+    const resFixed = document.getElementById('tracker-res-fixed');
+    const resVariable = document.getElementById('tracker-res-variable');
+    const resTotal = document.getElementById('tracker-res-total');
+
+    resFixed.textContent = formatCurrency(totalFixed);
+    resVariable.textContent = formatCurrency(totalVariable);
+    resTotal.textContent = formatCurrency(totalFixed + totalVariable);
+    
+    if (monthFromVal === monthToVal) {
+        periodLabel.textContent = `(${monthNames[startMonth]} ${startYear})`;
+    } else {
+        periodLabel.textContent = `(${monthNames[startMonth]} ${startYear} - ${monthNames[endMonth]} ${endYear})`;
+    }
+
+    resultsBox.style.display = 'block';
 }
 
-// Client Change on Main Calculator
-document.getElementById('calc-client').addEventListener('change', (e) => {
+document.getElementById('tracker-client').addEventListener('change', (e) => {
     const clientId = e.target.value;
-    const alertBox = document.getElementById('calc-onboarding-alert');
-    const calcBtn = document.getElementById('btn-calc-calculate');
+    const monthFrom = document.getElementById('tracker-month-from');
+    const monthTo = document.getElementById('tracker-month-to');
+    const resultsBox = document.getElementById('tracker-results-section');
 
-    if (!clientId) {
-        resetCalculator();
-        return;
-    }
+    monthFrom.disabled = true;
+    monthTo.disabled = true;
+    monthFrom.value = '';
+    monthTo.value = '';
+    resultsBox.style.display = 'none';
 
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return;
+    if (!clientId) return;
 
-    if (client.status === 'Upcoming' || client.id === 'c3' || client.id === 'c4') {
-        alertBox.style.display = 'flex';
-        calcBtn.disabled = true;
-        document.getElementById('calc-client-config-box').style.display = 'none';
-        document.getElementById('calc-inputs-section').style.display = 'none';
-        document.getElementById('calc-results-section').style.display = 'none';
-        document.getElementById('btn-calc-save').style.display = 'none';
-        return;
-    } else {
-        alertBox.style.display = 'none';
-        calcBtn.disabled = false;
-        document.getElementById('btn-calc-save').style.display = 'inline-flex';
-    }
-
-    // Show Terms box
-    document.getElementById('calc-client-config-box').style.display = 'block';
+    monthFrom.disabled = false;
+    monthTo.disabled = false;
     
-    // Use first LOB details for general config preview
-    const lob = client.lobs && client.lobs.length > 0 ? client.lobs[0] : {
-        billingModel: 'Retainer',
-        totalRetainer: 0,
-        commissionPercent: 0,
-        commissionBase: 'None'
-    };
+    // Auto populate with current month if empty
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    monthFrom.value = `${year}-${month}`;
+    monthTo.value = `${year}-${month}`;
 
-    document.getElementById('calc-preview-model').textContent = lob.billingModel;
-    document.getElementById('calc-preview-retainer').textContent = formatCurrency(lob.totalRetainer);
-    
-    let commRateText = '0%';
-    if (lob.commissionPercent !== undefined) {
-        commRateText = `${lob.commissionPercent}%`;
-    } else if (lob.variableSharePercent !== undefined) {
-        commRateText = `${lob.variableSharePercent}% (Var)`;
-    }
-    document.getElementById('calc-preview-commission-rate').textContent = commRateText;
-    document.getElementById('calc-preview-base').textContent = lob.commissionBase || lob.variableMetric || 'None';
-
-    // Show input fields if dynamic commission model
-    const inputSection = document.getElementById('calc-inputs-section');
-    if (lob.billingModel === 'Retainer' || lob.billingModel === 'SplitRetainer') {
-        inputSection.style.display = 'none';
-        document.getElementById('calc-variable-base').value = '';
-    } else {
-        inputSection.style.display = 'block';
-        document.getElementById('lbl-calc-variable-base').textContent = `Monthly performance value (${lob.commissionBase}) (INR)`;
-        document.getElementById('calc-variable-base').value = '';
-    }
-
-    // Hide results screen till user clicks calculate
-    document.getElementById('calc-results-section').style.display = 'none';
-    document.getElementById('btn-calc-save').disabled = true;
+    runTrackerLookup();
 });
 
-// Trigger Calculation (Look up actual logged billing entries)
-document.getElementById('btn-calc-calculate').addEventListener('click', () => {
-    const clientId = document.getElementById('calc-client').value;
-    if (!clientId) {
-        alert("Please select a client first.");
-        return;
-    }
+document.getElementById('tracker-month-from').addEventListener('input', runTrackerLookup);
+document.getElementById('tracker-month-to').addEventListener('input', runTrackerLookup);
 
-    const client = clients.find(c => c.id === clientId);
-    if (!client) return;
-
-    // Check onboarding alert
-    if (client.status === 'Upcoming' || client.id === 'c3' || client.id === 'c4') {
-        alert("Client On-boarding in process");
-        return;
-    }
-
-    // Get selected billing month
-    const rawMonth = document.getElementById('calc-billing-month').value;
-    if (!rawMonth) {
-        alert("Please select a billing month.");
-        return;
-    }
-    if (rawMonth < "2026-04") {
-        alert("Calculations can only be performed for FY 2026-27 onwards (starting April 2026).");
-        return;
-    }
-    const monthParts = rawMonth.split('-');
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const formattedMonth = `${monthNames[parseInt(monthParts[1]) - 1]} ${monthParts[0]}`; // e.g. "July 2026"
-
-    // Find actual transactions logged for this client and month
-    const clientTxs = transactions.filter(t => t.clientId === clientId && t.billingMonth === formattedMonth);
-
-    // Sum fixed retainer portions (t.retainerAmount)
-    const fixedRetainerSum = clientTxs.reduce((sum, t) => sum + (t.retainerAmount || 0), 0);
-
-    // Sum variable retainer portions (t.commissionAmount)
-    const variableRetainerSum = clientTxs.reduce((sum, t) => sum + (t.commissionAmount || 0), 0);
-
-    // Sum total
-    const totalBilling = fixedRetainerSum + variableRetainerSum;
-
-    // Display Breakdown
-    document.getElementById('calc-results-section').style.display = 'block';
-    document.getElementById('breakdown-retainer').textContent = formatCurrency(fixedRetainerSum);
-    document.getElementById('breakdown-commission').textContent = formatCurrency(variableRetainerSum);
-    document.getElementById('breakdown-total').textContent = formatCurrency(totalBilling);
-});
-
-// Block default form submission
-document.getElementById('full-calculator-form').addEventListener('submit', (e) => {
+document.getElementById('full-tracker-form').addEventListener('submit', (e) => {
     e.preventDefault();
 });
 

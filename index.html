@@ -464,89 +464,55 @@
                 </div>
             </div>
             
-            <!-- VIEW: Commission Calculator -->
+            <!-- VIEW: Commission Calculator (Now Tracker) -->
             <div id="view-calculator" class="view-panel">
                 <div class="calculator-layout">
                     <div class="dashboard-card calc-main-card">
                         <div class="card-header border-bottom">
-                            <h3>Commission & Retainer Billing Calculator</h3>
-                            <p class="card-subtitle text-muted">Generate exact monthly commissions based on your dynamic performance metric.</p>
+                            <h3>Client Commission Tracker</h3>
+                            <p class="card-subtitle text-muted">Track approved and paid commissions over any time period.</p>
                         </div>
                         <div class="card-body">
-                            <form id="full-calculator-form">
+                            <form id="full-tracker-form">
                                 <div class="form-row-2">
                                     <div class="form-group">
-                                        <label for="calc-client">Client</label>
-                                        <select id="calc-client" class="form-control form-control-lg" required>
-                                            <option value="">Select a Client...</option>
+                                        <label for="tracker-client">Select Client</label>
+                                        <select id="tracker-client" class="form-control form-control-lg" required>
+                                            <option value="">Choose Client...</option>
                                         </select>
                                     </div>
                                     <div class="form-group">
-                                        <label for="calc-billing-month">Billing Month</label>
-                                        <input type="month" id="calc-billing-month" class="form-control form-control-lg" required>
+                                        <!-- Spacer -->
+                                    </div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="tracker-month-from">From Month</label>
+                                        <input type="month" id="tracker-month-from" class="form-control form-control-lg" required disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="tracker-month-to">To Month</label>
+                                        <input type="month" id="tracker-month-to" class="form-control form-control-lg" required disabled>
                                     </div>
                                 </div>
                                 
-                                <div id="calc-onboarding-alert" class="alert-onboarding" style="display: none; padding: 16px; background-color: rgba(239, 68, 68, 0.15); border: 1px solid var(--danger); border-radius: var(--border-radius-md); color: #fca5a5; margin: 20px 0; font-weight: 500; align-items: center; gap: 8px;">
-                                    <i data-lucide="alert-circle" style="width: 20px; height: 20px; color: var(--danger);"></i>
-                                    <span>Client On-boarding in process</span>
-                                </div>
-                                
-                                <div class="client-config-preview" id="calc-client-config-box" style="display: none;">
-                                    <h4>Client Billing Terms</h4>
-                                    <div class="terms-grid">
-                                        <div class="term-item">
-                                            <span>Model</span>
-                                            <strong id="calc-preview-model">-</strong>
-                                        </div>
-                                        <div class="term-item">
-                                            <span>Fixed Retainer</span>
-                                            <strong id="calc-preview-retainer">₹0</strong>
-                                        </div>
-                                        <div class="term-item">
-                                            <span>Commission Rate</span>
-                                            <strong id="calc-preview-commission-rate">0%</strong>
-                                        </div>
-                                        <div class="term-item">
-                                            <span>Variable Base</span>
-                                            <strong id="calc-preview-base">-</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="form-group commission-inputs" id="calc-inputs-section" style="display: none;">
-                                    <label for="calc-variable-base" id="lbl-calc-variable-base">Enter Monthly Performance Value</label>
-                                    <div class="input-with-icon">
-                                        <span class="currency-symbol">₹</span>
-                                        <input type="number" id="calc-variable-base" class="form-control form-control-lg" placeholder="0.00">
-                                    </div>
-                                    <span class="helper-text text-muted">Please input the total Revenue / Ad Spend achieved this month for this client.</span>
-                                </div>
-                                
-                                <div class="results-box" id="calc-results-section" style="display: none;">
-                                    <h3>Monthly Billing Summary</h3>
+                                <div class="results-box" id="tracker-results-section" style="display: none; margin-top: 30px;">
+                                    <h3>Tracker Summary <span id="tracker-period-label" style="font-size: 14px; font-weight: normal; color: var(--text-secondary); margin-left: 10px;"></span></h3>
                                     <div class="breakdown-details">
                                         <div class="breakdown-line">
-                                            <span>Fixed Retainer</span>
-                                            <span id="breakdown-retainer">₹0</span>
+                                            <span>Approved Fixed Retainer</span>
+                                            <span id="tracker-res-fixed">₹0</span>
                                         </div>
                                         <div class="breakdown-line">
-                                            <span>Variable Retainer</span>
-                                            <span id="breakdown-commission">₹0</span>
+                                            <span>Approved Variable Commission</span>
+                                            <span id="tracker-res-variable">₹0</span>
                                         </div>
                                         <hr class="calc-divider">
                                         <div class="breakdown-line total">
-                                            <span>Total Billing</span>
-                                            <span id="breakdown-total">₹0</span>
+                                            <span>Total Approved Billing</span>
+                                            <span id="tracker-res-total">₹0</span>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="calc-actions">
-                                    <button type="button" id="btn-calc-calculate" class="btn btn-lg btn-secondary" style="cursor: pointer;">Calculate</button>
-                                    <button type="button" id="btn-calc-save" class="btn btn-lg btn-primary" onclick="switchTab('billing')" style="cursor: pointer;">
-                                        <i data-lucide="list"></i> View Billing Ledger
-                                    </button>
                                 </div>
                             </form>
                         </div>
