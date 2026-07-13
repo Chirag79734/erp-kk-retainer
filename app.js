@@ -611,7 +611,7 @@ document.getElementById('btn-add-client').addEventListener('click', () => {
     document.getElementById('client-id-field').value = '';
     
     // Default setup fields visibility
-    toggleClientBillingFields('Retainer');
+    toggleClientBillingFields('');
     
     document.getElementById('modal-client').classList.add('active');
 });
@@ -639,7 +639,7 @@ function toggleClientBillingFields(model) {
     } else if (model === 'Commission') {
         retainerGroup.style.display = 'none';
         commissionGroup.style.display = 'block';
-    } else if (model === 'Hybrid') {
+    } else if (model === 'Hybrid' || model === 'Fixed+Variable') {
         retainerGroup.style.display = 'block';
         commissionGroup.style.display = 'block';
     }
@@ -668,10 +668,10 @@ document.getElementById('client-form').addEventListener('submit', (e) => {
         let commissionPercent = 0;
         let commissionBase = "None";
         
-        if (billingModel === 'Retainer' || billingModel === 'Hybrid') {
+        if (billingModel === 'Retainer' || billingModel === 'Hybrid' || billingModel === 'Fixed+Variable') {
             retainerRate = parseFloat(document.getElementById('client-retainer-rate').value) || 0;
         }
-        if (billingModel === 'Commission' || billingModel === 'Hybrid') {
+        if (billingModel === 'Commission' || billingModel === 'Hybrid' || billingModel === 'Fixed+Variable') {
             commissionPercent = parseFloat(document.getElementById('client-commission-percent').value) || 0;
             commissionBase = document.getElementById('client-commission-base').value;
         }
