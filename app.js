@@ -861,15 +861,36 @@ window.rejectTransaction = function(id) {
 };
 
 window.updateTransactionStatus = function(id, newStatus) {
+    let reason = '';
+    if (newStatus === 'Rejected') {
+        reason = prompt("Please provide a reason for rejection (Required):");
+        if (!reason || reason.trim() === '') {
+            alert("Rejection reason is mandatory. Action cancelled.");
+            return;
+        }
+    }
+
     import('./auth.js').then(async ({ db, doc, updateDoc }) => {
         try {
             const txRef = doc(db, 'transactions', id);
-            await updateDoc(txRef, { status: newStatus });
+            const updatePayload = { status: newStatus };
+            if (newStatus === 'Rejected') {
+                updatePayload.rejectionReason = reason.trim();
+            } else {
+                updatePayload.rejectionReason = null;
+            }
+            await updateDoc(txRef, updatePayload);
             
             const idx = transactions.findIndex(t => t.id === id);
-            if (idx !== -1) transactions[idx].status = newStatus;
+            if (idx !== -1) {
+                transactions[idx].status = newStatus;
+                if (newStatus === 'Rejected') transactions[idx].rejectionReason = reason.trim();
+            }
             
-            await logAuditAction(`TRANSACTION_${newStatus.toUpperCase()}`, `Transaction ${id} was ${newStatus}.`);
+            const auditDetails = newStatus === 'Rejected' 
+                ? `Transaction ${id} was ${newStatus}. Reason: ${reason.trim()}`
+                : `Transaction ${id} was ${newStatus}.`;
+            await logAuditAction(`TRANSACTION_${newStatus.toUpperCase()}`, auditDetails);
             
             renderBillingLedger();
             renderDashboard();
@@ -1730,6 +1751,17 @@ window.viewInvoice = function(transactionId) {
             brandValEl.textContent = tx.brandName;
         } else {
             brandMeta.style.display = 'none';
+        }
+    }
+
+    const rejectionMeta = document.getElementById('inv-rejection-reason-meta');
+    const rejectionReasonEl = document.getElementById('inv-rejection-reason');
+    if (rejectionMeta && rejectionReasonEl) {
+        if ((tx.status || '').toUpperCase() === 'REJECTED' && tx.rejectionReason) {
+            rejectionMeta.style.display = 'block';
+            rejectionReasonEl.textContent = tx.rejectionReason;
+        } else {
+            rejectionMeta.style.display = 'none';
         }
     }
 
