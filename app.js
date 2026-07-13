@@ -815,6 +815,9 @@ async function renderBillingLedger() {
         const isPending = t.status === 'Pending Approval';
         // Only Admin and Commercial can approve/reject
         const canApprove = window.currentUserRole === 'admin' || window.currentUserRole === 'commercial';
+        const isAdmin = window.currentUserRole === 'admin';
+        const stCode = (t.status || '').toUpperCase();
+        const isApprovedOrPaid = stCode === 'APPROVED' || stCode === 'PAID';
         
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -837,6 +840,11 @@ async function renderBillingLedger() {
                         </button>
                         <button class="btn btn-sm btn-danger" onclick="rejectTransaction('${t.id}')" style="cursor: pointer; background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2);">
                             <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i> Reject
+                        </button>
+                    ` : ''}
+                    ${isApprovedOrPaid && isAdmin ? `
+                        <button class="btn btn-sm btn-danger" onclick="rejectTransaction('${t.id}')" style="cursor: pointer; background-color: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); margin-left: 4px;" title="Admin Override: Cancel/Reject">
+                            <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i> Cancel
                         </button>
                     ` : ''}
                     <button class="btn-icon delete" onclick="deleteTransaction('${t.id}')" title="Delete record" style="cursor: pointer;" data-role-required="admin">
