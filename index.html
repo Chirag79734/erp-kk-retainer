@@ -197,11 +197,11 @@
                                 <div style="display: flex; gap: 12px;">
                                     <div class="form-group" style="flex: 1;">
                                         <label for="mini-calc-month-from">From Month</label>
-                                        <input type="month" id="mini-calc-month-from" class="form-control" required disabled>
+                                        <input type="month" id="mini-calc-month-from" class="form-control" onclick="this.showPicker && this.showPicker()" required disabled>
                                     </div>
                                     <div class="form-group" style="flex: 1;">
                                         <label for="mini-calc-month-to">To Month</label>
-                                        <input type="month" id="mini-calc-month-to" class="form-control" required disabled>
+                                        <input type="month" id="mini-calc-month-to" class="form-control" onclick="this.showPicker && this.showPicker()" required disabled>
                                     </div>
                                 </div>
                                 
@@ -488,11 +488,11 @@
                                 <div class="form-row-2">
                                     <div class="form-group">
                                         <label for="tracker-month-from">From Month</label>
-                                        <input type="month" id="tracker-month-from" class="form-control form-control-lg" required disabled>
+                                        <input type="month" id="tracker-month-from" class="form-control form-control-lg" onclick="this.showPicker && this.showPicker()" required disabled>
                                     </div>
                                     <div class="form-group">
                                         <label for="tracker-month-to">To Month</label>
-                                        <input type="month" id="tracker-month-to" class="form-control form-control-lg" required disabled>
+                                        <input type="month" id="tracker-month-to" class="form-control form-control-lg" onclick="this.showPicker && this.showPicker()" required disabled>
                                     </div>
                                 </div>
                                 <div class="form-actions" style="margin-top: 20px;">
@@ -823,7 +823,7 @@
                 <div class="form-row-2">
                     <div class="form-group">
                         <label for="log-bill-month">Billing Month</label>
-                        <input type="month" id="log-bill-month" class="form-control" required>
+                        <input type="month" id="log-bill-month" class="form-control" onclick="this.showPicker && this.showPicker()" required>
                     </div>
                     <div class="form-group">
                         <label for="log-bill-lob">Business Unit</label>

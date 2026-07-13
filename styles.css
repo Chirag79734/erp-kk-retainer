@@ -533,6 +533,15 @@ label {
     outline: none;
 }
 
+input[type="month"] {
+    cursor: pointer;
+}
+
+input[type="month"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(0.9);
+    cursor: pointer;
+}
+
 .form-control option {
     background-color: var(--bg-card);
     color: var(--text-primary);
