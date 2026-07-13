@@ -906,9 +906,7 @@ async function renderBillingLedger() {
                             <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i> Cancel
                         </button>
                     ` : ''}
-                    <button class="btn-icon delete" onclick="deleteTransaction('${t.id}')" title="Delete record" style="cursor: pointer;" data-role-required="admin">
-                        <i data-lucide="trash-2"></i>
-                    </button>
+
                 </div>
             </td>
         `;
@@ -992,22 +990,7 @@ window.markAsPaid = function(id) {
     });
 };
 
-// Delete Transaction Record
-window.deleteTransaction = function(id) {
-    if (confirm("Are you sure you want to delete this billing ledger record? This will change historical metrics.")) {
-        import('./auth.js').then(async ({ db, doc, deleteDoc }) => {
-            try {
-                await deleteDoc(doc(db, 'transactions', id));
-                await logAuditAction('DELETE_TRANSACTION', `Transaction ${id} deleted`);
-                transactions = transactions.filter(t => t.id !== id);
-                renderBillingLedger();
-            } catch (error) {
-                console.error("Failed to delete transaction:", error);
-                alert("Failed to delete record.");
-            }
-        });
-    }
-};
+
 
 // Populate filters and forms dropdowns
 function populateDropdowns() {
