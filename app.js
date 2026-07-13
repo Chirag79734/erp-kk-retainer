@@ -973,20 +973,39 @@ window.updateTransactionStatus = function(id, newStatus) {
 
 // Mark Transaction Status as Paid
 window.markAsPaid = function(id) {
-    const transaction = transactions.find(t => t.id === id);
-    if (transaction) {
-        transaction.status = 'Paid';
-        saveData();
-        renderBillingLedger();
-    }
+    import('./auth.js').then(async ({ db, doc, updateDoc }) => {
+        try {
+            const txRef = doc(db, 'transactions', id);
+            await updateDoc(txRef, { status: 'Paid' });
+            
+            const transaction = transactions.find(t => t.id === id);
+            if (transaction) {
+                transaction.status = 'Paid';
+            }
+            
+            await logAuditAction('TRANSACTION_PAID', `Transaction ${id} marked as Paid`);
+            renderBillingLedger();
+        } catch (error) {
+            console.error("Failed to mark as paid:", error);
+            alert("Failed to update status.");
+        }
+    });
 };
 
 // Delete Transaction Record
 window.deleteTransaction = function(id) {
     if (confirm("Are you sure you want to delete this billing ledger record? This will change historical metrics.")) {
-        transactions = transactions.filter(t => t.id !== id);
-        saveData();
-        renderBillingLedger();
+        import('./auth.js').then(async ({ db, doc, deleteDoc }) => {
+            try {
+                await deleteDoc(doc(db, 'transactions', id));
+                await logAuditAction('DELETE_TRANSACTION', `Transaction ${id} deleted`);
+                transactions = transactions.filter(t => t.id !== id);
+                renderBillingLedger();
+            } catch (error) {
+                console.error("Failed to delete transaction:", error);
+                alert("Failed to delete record.");
+            }
+        });
     }
 };
 
