@@ -54,7 +54,13 @@
 }
 
 body {
-    background: radial-gradient(circle at 50% 50%, #0e162a 0%, #050810 100%);
+    background-color: #050810;
+    background-image: 
+        linear-gradient(rgba(5, 8, 16, 0.88), rgba(5, 8, 16, 0.97)),
+        url('https://images.unsplash.com/photo-1614850523459-c2f4c699c52e?auto=format&fit=crop&w=1920&q=80');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     background-attachment: fixed;
     color: var(--text-primary);
     font-family: var(--font-body);
