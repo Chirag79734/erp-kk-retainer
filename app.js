@@ -1832,19 +1832,27 @@ window.viewInvoice = function(transactionId) {
 
     if (lob && lob.billingModel === 'SplitRetainer') {
         // Retainer fixed share
-        rowRetainer.style.display = 'table-row';
-        rowRetainer.querySelector('td:nth-child(2)').textContent = `Fixed Monthly Retainer Service Fee (${lob.fixedSharePercent}% share)`;
-        rowRetainer.querySelector('td:nth-child(3)').textContent = `-`;
-        document.getElementById('inv-rate-retainer').textContent = formatCurrency(tx.retainerAmount);
-        document.getElementById('inv-total-retainer').textContent = formatCurrency(tx.retainerAmount);
+        if (tx.retainerAmount > 0) {
+            rowRetainer.style.display = 'table-row';
+            rowRetainer.querySelector('td:nth-child(2)').textContent = `Fixed Monthly Retainer Service Fee (${lob.fixedSharePercent}% share)`;
+            rowRetainer.querySelector('td:nth-child(3)').textContent = `-`;
+            document.getElementById('inv-rate-retainer').textContent = formatCurrency(tx.retainerAmount);
+            document.getElementById('inv-total-retainer').textContent = formatCurrency(tx.retainerAmount);
+        } else {
+            rowRetainer.style.display = 'none';
+        }
 
         // Variable KPI share
-        rowCommission.style.display = 'table-row';
-        rowCommission.querySelector('td:nth-child(2)').textContent = `KPI Variable Performance Retainer Share (${lob.variableSharePercent}% share x ${tx.kpiAchievement || 0}% score)`;
-        document.getElementById('inv-comm-rate-badge').textContent = `${lob.variableSharePercent}%`;
-        document.getElementById('inv-comm-basis').textContent = `Target KPI rating: ${tx.kpiAchievement || 0}%`;
-        document.getElementById('inv-comm-rate-val').textContent = `${lob.variableSharePercent}% max`;
-        document.getElementById('inv-total-commission').textContent = formatCurrency(tx.commissionAmount);
+        if (tx.commissionAmount > 0) {
+            rowCommission.style.display = 'table-row';
+            rowCommission.querySelector('td:nth-child(2)').textContent = `KPI Variable Performance Retainer Share (${lob.variableSharePercent}% share x ${tx.kpiAchievement || 0}% score)`;
+            document.getElementById('inv-comm-rate-badge').textContent = `${lob.variableSharePercent}%`;
+            document.getElementById('inv-comm-basis').textContent = `Target KPI rating: ${tx.kpiAchievement || 0}%`;
+            document.getElementById('inv-comm-rate-val').textContent = `${lob.variableSharePercent}% max`;
+            document.getElementById('inv-total-commission').textContent = formatCurrency(tx.commissionAmount);
+        } else {
+            rowCommission.style.display = 'none';
+        }
     } else {
         // Standard model display
         if (tx.retainerAmount > 0) {
