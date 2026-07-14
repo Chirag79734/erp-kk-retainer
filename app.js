@@ -210,6 +210,25 @@ function renderDashboard() {
 
     // 5. Render Billing Action Alerts
     renderBillingAlerts();
+
+    // 6. Populate Leadership Team / About Us Statistics
+    try {
+        if (document.getElementById('stats-active-clients')) {
+            const activeClientsCount = clients.filter(c => c.status === 'Active').length;
+            document.getElementById('stats-active-clients').textContent = activeClientsCount;
+
+            let activeLobsCount = 0;
+            clients.filter(c => c.status === 'Active').forEach(c => {
+                if (c.lobs) activeLobsCount += c.lobs.length;
+            });
+            document.getElementById('stats-active-lobs').textContent = activeLobsCount;
+
+            document.getElementById('stats-monthly-billing').textContent = formatCurrency(totalBilling);
+            document.getElementById('stats-invoices-processed').textContent = transactions.length;
+        }
+    } catch(e) {
+        console.error("Failed to update leadership statistics:", e);
+    }
 }
 
 function renderBillingAlerts() {

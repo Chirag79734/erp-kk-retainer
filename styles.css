@@ -1217,103 +1217,214 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 }
 
 /* =========================================
-   About Us Page Styles
+   Leadership Team & Portal Overview Styles
 ========================================= */
-.about-grid {
+
+/* Hero Banner */
+.leadership-hero {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 58, 138, 0.9)), url('data:image/svg+xml;utf8,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="%230f172a"/><circle cx="50" cy="50" r="40" fill="%231e3a8a" opacity="0.1"/></svg>');
+    background-size: cover;
+    padding: 60px 40px;
+    border-radius: var(--border-radius-lg);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    margin-bottom: 40px;
+}
+
+.hero-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+}
+
+.hero-subtitle {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Leadership Profiles */
+.leadership-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 32px;
-    margin-top: 16px;
 }
 
-.profile-card {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius-lg);
-    padding: 32px;
+.leader-card {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 40px;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    transition: var(--transition-smooth);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-.profile-card::before {
+.leader-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 120px;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.1));
-    z-index: 0;
-}
-
-.profile-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 255, 255, 0.1);
-}
-
-.profile-image-container {
-    width: 140px;
     height: 140px;
+    z-index: 0;
+    opacity: 0.15;
+}
+
+.cyrus-card::before {
+    background: linear-gradient(135deg, #10b981, #3b82f6);
+}
+
+.david-card::before {
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+}
+
+.leader-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.leader-image-container {
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
     margin-bottom: 24px;
     z-index: 1;
     position: relative;
     padding: 6px;
-    background: var(--bg-card);
-    border: 1px solid rgba(255,255,255,0.1);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    background: var(--bg-main);
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.5);
 }
 
-.profile-image {
+.leader-image {
     width: 100%;
     height: 100%;
     border-radius: 50%;
     object-fit: cover;
-    background-color: var(--bg-main);
+    background-color: var(--bg-card);
 }
 
-.profile-content {
+.leader-content {
     z-index: 1;
     position: relative;
+    width: 100%;
 }
 
-.profile-content h3 {
-    font-size: 24px;
+.leader-content h3 {
+    font-size: 26px;
     font-weight: 700;
     margin-bottom: 8px;
     color: #fff;
+    letter-spacing: -0.5px;
 }
 
-.profile-title {
-    font-size: 14px;
+.leader-title {
+    font-size: 15px;
     color: var(--primary);
     font-weight: 600;
-    margin-bottom: 24px;
-    line-height: 1.4;
+    margin-bottom: 20px;
 }
 
-.profile-bio {
-    text-align: left;
+/* Badges */
+.badge-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.premium-badge {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.cyrus-card .premium-badge:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #93c5fd;
+}
+
+.david-card .premium-badge:hover {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+}
+
+.leader-bio {
     color: var(--text-muted);
     font-size: 14px;
-    line-height: 1.7;
+    line-height: 1.6;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 20px;
 }
 
-.profile-bio p {
+/* Platform Overview */
+.platform-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: var(--transition-smooth);
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: 16px;
 }
 
-.profile-bio p:last-child {
-    margin-bottom: 0;
+.feature-card h4 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
 }
 
-/* Make Cyrus's gradient slightly different for visual variety */
-.profile-card:nth-child(2)::before {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(14, 165, 233, 0.1));
+.feature-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
 }
