@@ -1519,7 +1519,7 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
             switchTab('billing');
         } catch (error) {
             console.error("Error creating billing transaction:", error);
-            alert("Failed to log billing transaction.");
+            alert("Failed to log billing transaction: " + error.message);
         }
     });
 });
