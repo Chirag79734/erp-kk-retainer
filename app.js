@@ -1273,27 +1273,10 @@ function triggerLogBillLobChange(client, lob) {
     termsBox.innerHTML = termsHTML;
 
     // Show/hide inputs
-    const isAirtel = client.name.toLowerCase().includes('airtel');
-    const optCommission = document.getElementById('opt-commission');
-    const optFixedRetainer = document.getElementById('opt-fixed-retainer');
-    if (optCommission) optCommission.style.display = 'none';
-    if (optFixedRetainer) optFixedRetainer.style.display = 'none';
-
-    if (lob.billingModel === 'SplitRetainer' || isAirtel) {
+    if (lob.billingModel === 'SplitRetainer') {
         // Show Billing Type selection
         document.getElementById('log-bill-type-group').style.display = 'block';
-        
-        if (isAirtel) {
-            if (lob.name === 'Airtel Payment Bank') {
-                if (optCommission) optCommission.style.display = 'block';
-                document.getElementById('log-bill-type').value = 'Commission';
-            } else {
-                if (optFixedRetainer) optFixedRetainer.style.display = 'block';
-                document.getElementById('log-bill-type').value = 'Fixed+Retainer';
-            }
-        } else {
-            document.getElementById('log-bill-type').value = 'Fixed'; // Default to Fixed
-        }
+        document.getElementById('log-bill-type').value = 'Fixed'; // Default to Fixed
         
         triggerLogBillTypeChange(client, lob);
     } else {
@@ -1355,67 +1338,27 @@ document.getElementById('log-bill-type').addEventListener('change', () => {
 function triggerLogBillTypeChange(client, lob) {
     const billType = document.getElementById('log-bill-type').value;
 
-    const isAirtel = client.name.toLowerCase().includes('airtel');
-    const fixedGroup = document.getElementById('log-bill-fixed-group');
-    const kpiGroup = document.getElementById('log-bill-kpi-group');
-    const varGroup = document.getElementById('log-bill-variable-group');
-    const fixedInput = document.getElementById('log-bill-fixed-value');
-    const fixedLabel = document.getElementById('log-bill-fixed-label');
-    const fixedHelper = document.getElementById('log-bill-fixed-helper');
-    const spendGroup = document.getElementById('log-bill-spend-group');
-    const commGroup = document.getElementById('log-bill-commission-pct-group');
-
-    if (spendGroup) spendGroup.style.display = 'none';
-    if (commGroup) commGroup.style.display = 'none';
-    if (fixedInput) {
-        fixedInput.readOnly = false;
-        fixedInput.style.backgroundColor = '';
-    }
-
-    if (isAirtel && lob.name === 'Airtel Payment Bank') {
-        if (spendGroup) spendGroup.style.display = 'block';
-        if (commGroup) commGroup.style.display = 'block';
-        fixedGroup.style.display = 'none';
-        kpiGroup.style.display = 'none';
-        varGroup.style.display = 'none';
-    } else if (lob.billingModel === 'SplitRetainer' || isAirtel) {
+    if (lob.billingModel === 'SplitRetainer') {
         if (billType === 'Fixed') {
             // Show Fixed Retainer group (Read-only)
-            fixedGroup.style.display = 'block';
+            document.getElementById('log-bill-fixed-group').style.display = 'block';
             const fixedVal = lob.fixedAmount !== undefined ? lob.fixedAmount : lob.totalRetainer * (lob.fixedSharePercent / 100);
-            fixedInput.value = fixedVal;
+            document.getElementById('log-bill-fixed-value').value = fixedVal;
 
             // Hide KPI & Variable
-            kpiGroup.style.display = 'none';
-            varGroup.style.display = 'none';
+            document.getElementById('log-bill-kpi-group').style.display = 'none';
+            document.getElementById('log-bill-variable-group').style.display = 'none';
         } else if (billType === 'Variable') {
             // Hide Fixed Retainer
-            fixedGroup.style.display = 'none';
-            if (fixedInput) fixedInput.value = '0';
+            document.getElementById('log-bill-fixed-group').style.display = 'none';
+            document.getElementById('log-bill-fixed-value').value = '0';
 
             // Show KPI Group
-            kpiGroup.style.display = 'block';
+            document.getElementById('log-bill-kpi-group').style.display = 'block';
             document.getElementById('log-bill-kpi-value').value = 100;
 
             // Hide Variable group
-            varGroup.style.display = 'none';
-        } else if (billType === 'Fixed+Retainer' && isAirtel) {
-            fixedGroup.style.display = 'block';
-            if (fixedLabel) fixedLabel.textContent = 'Fixed + Retainer';
-            if (fixedHelper) fixedHelper.textContent = 'Fixed amount frozen based on Business Unit.';
-            let frozenAmt = 0;
-            if (['Broadband', 'Mobility', 'Branding'].includes(lob.name)) frozenAmt = 1000000;
-            else if (lob.name === 'Finance') frozenAmt = 200000;
-            else if (lob.name === 'Airtel Thanks') frozenAmt = 400000;
-            else if (lob.name === 'Airtel Xstream') frozenAmt = 211000;
-            
-            if (fixedInput) {
-                fixedInput.value = frozenAmt;
-                fixedInput.readOnly = true;
-                fixedInput.style.backgroundColor = 'rgba(255, 255, 255, 0.03)';
-            }
-            kpiGroup.style.display = 'none';
-            varGroup.style.display = 'none';
+            document.getElementById('log-bill-variable-group').style.display = 'none';
         }
     }
     
@@ -1433,23 +1376,15 @@ function runLogBillCalculation() {
     const lob = client.lobs.find(l => l.name === lobName);
     if (!lob) return;
 
-    const isAirtel = client.name.toLowerCase().includes('airtel');
     let retainerAmt = 0;
     let commissionAmt = 0;
     let baseVal = parseFloat(document.getElementById('log-bill-variable-value').value) || 0;
     let kpiVal = parseFloat(document.getElementById('log-bill-kpi-value').value) || 0;
-    let spendVal = document.getElementById('log-bill-spend-value') ? (parseFloat(document.getElementById('log-bill-spend-value').value) || 0) : 0;
-    let commPctVal = document.getElementById('log-bill-commission-pct-value') ? (parseFloat(document.getElementById('log-bill-commission-pct-value').value) || 0) : 0;
-
     if (kpiVal < 0) kpiVal = 0;
     if (kpiVal > 100) kpiVal = 100;
-
-    if (isAirtel && lob.name === 'Airtel Payment Bank') {
-        retainerAmt = 0;
-        commissionAmt = spendVal * (commPctVal / 100);
-    } else if (lob.billingModel === 'SplitRetainer' || isAirtel) {
+    if (lob.billingModel === 'SplitRetainer') {
         const billType = document.getElementById('log-bill-type').value;
-        if (billType === 'Fixed' || billType === 'Fixed+Retainer') {
+        if (billType === 'Fixed') {
             retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
             commissionAmt = 0;
         } else if (billType === 'Variable') {
@@ -1482,10 +1417,6 @@ function runLogBillCalculation() {
 document.getElementById('log-bill-fixed-value').addEventListener('input', runLogBillCalculation);
 document.getElementById('log-bill-variable-value').addEventListener('input', runLogBillCalculation);
 document.getElementById('log-bill-kpi-value').addEventListener('input', runLogBillCalculation);
-const spendInput = document.getElementById('log-bill-spend-value');
-if (spendInput) spendInput.addEventListener('input', runLogBillCalculation);
-const commPctInput = document.getElementById('log-bill-commission-pct-value');
-if (commPctInput) commPctInput.addEventListener('input', runLogBillCalculation);
 
 // Log Bill Submit handler
 document.getElementById('billing-form').addEventListener('submit', (e) => {
@@ -1510,10 +1441,7 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
 
     const baseVal = parseFloat(document.getElementById('log-bill-variable-value').value) || 0;
     const kpiVal = parseFloat(document.getElementById('log-bill-kpi-value').value) || 0;
-    const spendVal = document.getElementById('log-bill-spend-value') ? (parseFloat(document.getElementById('log-bill-spend-value').value) || 0) : 0;
-    const commPctVal = document.getElementById('log-bill-commission-pct-value') ? (parseFloat(document.getElementById('log-bill-commission-pct-value').value) || 0) : 0;
-    const isAirtel = client.name.toLowerCase().includes('airtel');
-    const billType = (lob.billingModel === 'SplitRetainer' || isAirtel) ? document.getElementById('log-bill-type').value : null;
+    const billType = lob.billingModel === 'SplitRetainer' ? document.getElementById('log-bill-type').value : null;
     const invoiceNum = document.getElementById('log-bill-invoice-number').value.trim();
     const poNum = document.getElementById('log-bill-po-number').value.trim();
 
@@ -1525,11 +1453,8 @@ document.getElementById('billing-form').addEventListener('submit', (e) => {
     let retainerAmt = 0;
     let commissionAmt = 0;
 
-    if (isAirtel && lob.name === 'Airtel Payment Bank') {
-        retainerAmt = 0;
-        commissionAmt = spendVal * (commPctVal / 100);
-    } else if (lob.billingModel === 'SplitRetainer' || isAirtel) {
-        if (billType === 'Fixed' || billType === 'Fixed+Retainer') {
+    if (lob.billingModel === 'SplitRetainer') {
+        if (billType === 'Fixed') {
             retainerAmt = parseFloat(document.getElementById('log-bill-fixed-value').value) || 0;
             commissionAmt = 0;
         } else if (billType === 'Variable') {

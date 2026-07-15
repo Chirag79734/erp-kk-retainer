@@ -1047,8 +1047,6 @@
                     <select id="log-bill-type" class="form-control">
                         <option value="Fixed">Fixed</option>
                         <option value="Variable">Variable</option>
-                        <option value="Commission" id="opt-commission" style="display:none;">Commission</option>
-                        <option value="Fixed+Retainer" id="opt-fixed-retainer" style="display:none;">Fixed+Retainer</option>
                     </select>
                 </div>
                 
@@ -1077,25 +1075,12 @@
                 </div>
                 
                 <div class="form-group" id="log-bill-fixed-group" style="display: none;">
-                    <label for="log-bill-fixed-value" id="log-bill-fixed-label">Fixed Retainer Fee (INR)</label>
+                    <label for="log-bill-fixed-value">Fixed Retainer Fee (INR)</label>
                     <div class="input-with-icon">
                         <span class="currency-symbol">₹</span>
                         <input type="number" id="log-bill-fixed-value" class="form-control" placeholder="0">
                     </div>
-                    <span class="helper-text text-muted" id="log-bill-fixed-helper">Fixed retainer portion (editable).</span>
-                </div>
-
-                <div class="form-group" id="log-bill-spend-group" style="display: none;">
-                    <label for="log-bill-spend-value">Spend Amount (INR)</label>
-                    <div class="input-with-icon">
-                        <span class="currency-symbol">₹</span>
-                        <input type="number" id="log-bill-spend-value" class="form-control" placeholder="0" min="0">
-                    </div>
-                </div>
-
-                <div class="form-group" id="log-bill-commission-pct-group" style="display: none;">
-                    <label for="log-bill-commission-pct-value">Commission %</label>
-                    <input type="number" id="log-bill-commission-pct-value" class="form-control" placeholder="0" min="0" max="100" step="0.01">
+                    <span class="helper-text text-muted">Fixed retainer portion (editable).</span>
                 </div>
 
                 <div class="form-group" id="log-bill-kpi-group" style="display: none;">
