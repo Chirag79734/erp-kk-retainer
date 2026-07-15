@@ -448,7 +448,7 @@
                             </select>
                         </div>
                     </div>
-                    <button class="btn btn-primary" id="btn-create-bill" data-role-required="admin,finance">
+                    <button class="btn btn-primary" id="btn-create-bill" data-role-required="admin,finance,commercial">
                         <i data-lucide="plus-circle"></i> Log Billing Transaction
                     </button>
                 </div>
@@ -1141,9 +1141,10 @@
 
         window.applyRBAC = function(role) {
             const elements = document.querySelectorAll('[data-role-required]');
+            const userRoleStr = (role || '').toLowerCase().trim();
             elements.forEach(el => {
-                const requiredRoles = el.getAttribute('data-role-required').split(',');
-                if (!requiredRoles.includes(role)) {
+                const requiredRoles = el.getAttribute('data-role-required').toLowerCase().split(',').map(r => r.trim());
+                if (!requiredRoles.includes(userRoleStr)) {
                     el.style.display = 'none';
                 } else {
                     el.style.display = '';
